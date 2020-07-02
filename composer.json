@@ -2,7 +2,7 @@
   "name": "ekvio-dev/integration-php-sdk",
   "description": "Ekvio integration PHP SDK",
   "type": "project",
-  "license": "commercial",
+  "license": "MIT",
   "minimum-stability": "stable",
   "authors": [
     {
