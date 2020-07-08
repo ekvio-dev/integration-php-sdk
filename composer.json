@@ -15,14 +15,19 @@
     "ext-curl": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
-    "guzzlehttp/guzzle": "^7.0"
+    "guzzlehttp/guzzle": "^7.0",
+    "webmozart/assert": "^1.9"
   },
   "autoload": {
     "psr-4": {
-      "Ekvio\\Integration\\Sdk\\": "src/"
+      "Ekvio\\Integration\\Sdk\\": "src/",
+      "Ekvio\\Integration\\Sdk\\Tests\\": "tests/"
     }
   },
   "config": {
     "sort-packages": true
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9"
   }
 }

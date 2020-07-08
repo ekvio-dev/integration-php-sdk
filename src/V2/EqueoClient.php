@@ -5,8 +5,9 @@ namespace Ekvio\Integration\Sdk\V2;
 
 use DateTimeImmutable;
 use Ekvio\Integration\Sdk\V2\Integration\IntegrationResult;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Client\ClientInterface;
+use Throwable;
+use Webmozart\Assert\Assert;
 
 /**
  * Class EqueoClient
@@ -61,6 +62,9 @@ class EqueoClient
      */
     public function __construct(ClientInterface $client, IntegrationResult $integrationResult, string $host, string $token, array $options = [])
     {
+        Assert::notEmpty($host, 'API host required');
+        Assert::notEmpty($token, 'API token required');
+
         $this->client = $client;
         $this->integrationResult = $integrationResult;
         $this->host = $host;
@@ -89,10 +93,10 @@ class EqueoClient
     /**
      * @param string $method
      * @param string $endpoint
-     * @param array $body
      * @param array $fields
+     * @param array $body
      * @return array
-     * @throws GuzzleException
+     * @throws ApiException
      */
     public function request(string $method, string $endpoint = '', array $fields = [], array $body = []): array
     {
@@ -103,27 +107,54 @@ class EqueoClient
             ],
         ];
 
-        if(in_array($method, ['POST', 'PUT', 'PATCH'])) {
-            $attributes['body'] = json_encode($body, JSON_THROW_ON_ERROR);
-        }
-
-        $url = sprintf('%s%s', $this->host, $endpoint);
-
-        if($fields) {
-            $url .= '?';
-            foreach ($fields as $field => $values) {
-                if(is_array($values)) {
-                    $values = implode(',', $values);
-                }
-
-                $url .= sprintf('%s=%s&', $field, $values);
+        try {
+            if(in_array($method, ['POST', 'PUT', 'PATCH'])) {
+                $attributes['body'] = json_encode($body, JSON_THROW_ON_ERROR);
             }
-            $url = rtrim($url, '&');
+
+            $url = sprintf('%s%s', $this->host, $endpoint);
+
+            if($fields) {
+                $url .= '?';
+                foreach ($fields as $field => $values) {
+                    if(is_array($values)) {
+                        $values = implode(',', $values);
+                    }
+
+                    $url .= sprintf('%s=%s&', $field, $values);
+                }
+                $url = rtrim($url, '&');
+            }
+
+            $this->profile($url, json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+
+            $response = $this->client->request($method, $url, $attributes);
+            return json_decode($response->getBody()->getContents(), true);
+        } catch (Throwable $exception) {
+            ApiException::failedRequest($exception->getMessage());
+        }
+    }
+
+    /**
+     * @param string $method
+     * @param string $endpoint
+     * @param array $fields
+     * @param array $body
+     * @return array
+     * @throws ApiException
+     *
+     */
+    public function deferredRequest(string $method, string $endpoint = '', array $fields = [], array $body = []): array
+    {
+        $response = $this->request($method, $endpoint, $fields, $body);
+
+        if(isset($response['errors'])) {
+            ApiException::apiErrors($response['errors']);
         }
 
-        $this->profile($url, json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
-        $response = $this->client->request($method, $url, $attributes);
-        return json_decode($response->getBody()->getContents(), true);
+        $integration = (int) $response['data']['integration'];
+
+        return $this->integration($integration);
     }
 
     /**
@@ -131,7 +162,6 @@ class EqueoClient
      * @param int $maxCountRequest
      * @return array
      * @throws ApiException
-     * @throws GuzzleException
      * @noinspection PhpInconsistentReturnPointsInspection
      */
     public function integration(int $integrationId, int $maxCountRequest = self::REQUEST_MAX_COUNT): array
