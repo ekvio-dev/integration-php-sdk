@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Ekvio\Integration\Sdk\V2;
+namespace Ekvio\Integration\Sdk;
 
 use Exception;
 
 /**
  * Class ApiException
- * @package Ekvio\Integration\Sdk\V2
+ * @package Ekvio\Integration\Sdk
  */
 class ApiException extends Exception
 {

@@ -1,10 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Ekvio\Integration\Sdk\V2\User;
+namespace Ekvio\Integration\Sdk\V1\User;
 
 use Ekvio\Integration\Sdk\ApiException;
-use Ekvio\Integration\Sdk\V2\EqueoClient;
+use Ekvio\Integration\Sdk\V1\EqueoClient;
+use Ekvio\Integration\Sdk\V2\User\UserSync;
 
 /**
  * Class User
@@ -12,7 +13,7 @@ use Ekvio\Integration\Sdk\V2\EqueoClient;
  */
 class User implements UserSync
 {
-    private const USER_SYNC_ENDPOINT = '/v2/users/sync';
+    private const USER_SYNC_ENDPOINT = '/v1/users';
     /**
      * @var EqueoClient
      */
@@ -35,9 +36,13 @@ class User implements UserSync
     public function sync(array $users): array
     {
         $response = $this->client->deferredRequest('POST', self::USER_SYNC_ENDPOINT, [], [
-            'data' => $users
+            'users' => $users
         ]);
 
-        return $response['data'];
+        if(!isset($response['success'])) {
+            ApiException::apiFailed('Attribute success not set');
+        }
+
+        return $response['success'];
     }
 }

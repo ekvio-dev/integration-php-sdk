@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Ekvio\Integration\Sdk\V2\Material;
 
-use Ekvio\Integration\Sdk\V2\ApiException;
+use Ekvio\Integration\Sdk\ApiException;
 use Ekvio\Integration\Sdk\V2\EqueoClient;
 
 /**

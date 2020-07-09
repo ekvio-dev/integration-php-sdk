@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Ekvio\Integration\Sdk\V2;
+namespace Ekvio\Integration\Sdk\V1;
 
 use DateTimeImmutable;
 use Ekvio\Integration\Sdk\ApiException;
@@ -12,7 +12,7 @@ use Webmozart\Assert\Assert;
 
 /**
  * Class EqueoClient
- * @package Ekvio\Integration\Sdk\V2
+ * @package Ekvio\Integration\Sdk\V1
  */
 class EqueoClient
 {
@@ -149,11 +149,11 @@ class EqueoClient
     {
         $response = $this->request($method, $endpoint, $fields, $body);
 
-        if(isset($response['errors'])) {
-            ApiException::apiErrors($response['errors']);
+        if(!isset($response['success'], $response['integration_id'])) {
+            ApiException::apiFailed(sprintf('Creating integration task failed. Response: %s', json_encode($response)));
         }
 
-        $integration = (int) $response['data']['integration'];
+        $integration = (int) $response['integration_id'];
 
         return $this->integration($integration);
     }
@@ -197,9 +197,6 @@ class EqueoClient
             $this->profile(sprintf('Get integration task result in %s', $file));
             $content = json_decode($this->integrationResult->get($file), true);
 
-            if(isset($content['errors'])) {
-                ApiException::apiErrors($content['errors']);
-            }
             return $content;
         }
 
