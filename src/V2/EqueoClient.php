@@ -86,7 +86,7 @@ class EqueoClient
             $this->debug = (bool) $options['debug'];
         }
 
-        if(array_key_exists('debug', $options)) {
+        if(array_key_exists('debug_request_body', $options)) {
             $this->debugRequestBody = (bool) $options['debug_request_body'];
         }
     }

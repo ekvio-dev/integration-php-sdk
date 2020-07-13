@@ -12,17 +12,47 @@ use Ekvio\Integration\Sdk\ApiException;
 class HttpIntegrationResult implements IntegrationResult
 {
     /**
+     * @var string|null
+     */
+    private $fileHost;
+
+    /**
+     * HttpIntegrationResult constructor.
+     * @param string|null $fileHost
+     */
+    public function __construct(?string $fileHost = null)
+    {
+        $this->fileHost = $fileHost;
+    }
+
+    /**
      * @param string $url
      * @return string
      * @throws ApiException
      */
     public function get(string $url): string
     {
+        if($this->fileHost) {
+            $url = $this->modifyUrlHost($url);
+        }
+
         $content = file_get_contents($url);
         if($content === false) {
             ApiException::apiFailed(sprintf('Error in retrieve integration result by %s', $url));
         }
 
         return (string) $content;
+    }
+
+    /**
+     * @param string $url
+     * @return string
+     */
+    private function modifyUrlHost(string $url): string
+    {
+        $url = parse_url($url);
+        $path = $url['path'] ?? '';
+
+        return sprintf('%s%s', $this->fileHost, $path);
     }
 }
