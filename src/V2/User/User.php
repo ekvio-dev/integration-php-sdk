@@ -10,10 +10,11 @@ use Ekvio\Integration\Sdk\V2\EqueoClient;
  * Class User
  * @package Ekvio\Integration\Sdk\V2\User
  */
-class User implements UserSync, LoginRename
+class User implements UserSync, LoginRename, UserSearch
 {
     private const USER_SYNC_ENDPOINT = '/v2/users/sync';
     private const USER_LOGIN_RENAME_ENDPOINT = '/v2/users/rename';
+    private const USER_SEARCH_ENDPOINT = '/v2/users/search';
     /**
      * @var EqueoClient
      */
@@ -54,5 +55,21 @@ class User implements UserSync, LoginRename
         ]);
 
         return $response['data'];
+    }
+
+    /**
+     * @param UserSearchCriteria $criteria
+     * @return array
+     * @throws ApiException
+     */
+    public function search(UserSearchCriteria $criteria): array
+    {
+        $method = 'GET';
+        $body = [];
+        if($criteria->filters()) {
+            $method = 'POST';
+            $body['filters'] = $criteria->filters();
+        }
+        return $this->client->pagedRequest($method, self::USER_SEARCH_ENDPOINT, $criteria->params(), $body);
     }
 }

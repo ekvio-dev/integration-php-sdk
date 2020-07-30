@@ -94,12 +94,12 @@ class EqueoClient
     /**
      * @param string $method
      * @param string $endpoint
-     * @param array $fields
+     * @param array $queryParams
      * @param array $body
      * @return array
      * @throws ApiException
      */
-    public function request(string $method, string $endpoint = '', array $fields = [], array $body = []): array
+    public function request(string $method, string $endpoint, array $queryParams = [], array $body = []): array
     {
         $attributes = [
             'verify' => false,
@@ -115,14 +115,14 @@ class EqueoClient
 
             $url = sprintf('%s%s', $this->host, $endpoint);
 
-            if($fields) {
+            if($queryParams) {
                 $url .= '?';
-                foreach ($fields as $field => $values) {
+                foreach ($queryParams as $param => $values) {
                     if(is_array($values)) {
                         $values = implode(',', $values);
                     }
 
-                    $url .= sprintf('%s=%s&', $field, $values);
+                    $url .= sprintf('%s=%s&', $param, $values);
                 }
                 $url = rtrim($url, '&');
             }
@@ -139,15 +139,56 @@ class EqueoClient
     /**
      * @param string $method
      * @param string $endpoint
-     * @param array $fields
+     * @param array $queryParams
+     * @param array $body
+     * @return array
+     * @throws ApiException
+     */
+    public function pagedRequest(string $method, string $endpoint, array $queryParams = [], array $body = []): array
+    {
+        $response = $this->request($method, $endpoint, $queryParams, $body);
+        $this->raiseExceptionIfErrorResponse($response);
+
+        $data = $response['data'];
+        while (isset($response['meta']['pagination']['links']['next'])) {
+            $nextUrl = $response['meta']['pagination']['links']['next'];
+
+            $response = $this->request($method, $nextUrl, [], $body);
+            $this->raiseExceptionIfErrorResponse($response);
+
+            $data = array_merge($data, $response['data']);
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array $response
+     * @throws ApiException
+     */
+    private function raiseExceptionIfErrorResponse(array $response): void
+    {
+        if(isset($response['errors'])) {
+            ApiException::apiErrors($response['errors']);
+        }
+
+        if(!isset($response['data'])) {
+            ApiException::failedRequest('No section data in response from Equeo API');
+        }
+    }
+
+    /**
+     * @param string $method
+     * @param string $endpoint
+     * @param array $queryParams
      * @param array $body
      * @return array
      * @throws ApiException
      *
      */
-    public function deferredRequest(string $method, string $endpoint = '', array $fields = [], array $body = []): array
+    public function deferredRequest(string $method, string $endpoint, array $queryParams = [], array $body = []): array
     {
-        $response = $this->request($method, $endpoint, $fields, $body);
+        $response = $this->request($method, $endpoint, $queryParams, $body);
 
         if(isset($response['errors'])) {
             ApiException::apiErrors($response['errors']);
@@ -209,7 +250,7 @@ class EqueoClient
             return $this->integration($integrationId, $maxCountRequest - 1);
         }
 
-        ApiException::failedRequest('Integration status not change in 180 seconds');
+        ApiException::failedRequest(sprintf('For integration %s status %s was not change', $integrationId, $status));
     }
 
     /**
