@@ -110,7 +110,7 @@ class EqueoClient
 
         try {
             if(in_array($method, ['POST', 'PUT', 'PATCH'])) {
-                $attributes['body'] = json_encode($body, JSON_THROW_ON_ERROR);
+                $attributes['body'] = json_encode($body);
             }
 
             $url = sprintf('%s%s', $this->host, $endpoint);
@@ -127,7 +127,7 @@ class EqueoClient
                 $url = rtrim($url, '&');
             }
 
-            $this->profile($url, json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+            $this->profile($url, json_encode($body, JSON_UNESCAPED_UNICODE));
 
             $response = $this->client->request($method, $url, $attributes);
             return json_decode($response->getBody()->getContents(), true);
