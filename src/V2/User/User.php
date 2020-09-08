@@ -10,11 +10,12 @@ use Ekvio\Integration\Sdk\V2\EqueoClient;
  * Class User
  * @package Ekvio\Integration\Sdk\V2\User
  */
-class User implements UserSync, LoginRename, UserSearch
+class User implements UserSync, LoginRename, UserSearch, UserDelete
 {
     private const USER_SYNC_ENDPOINT = '/v2/users/sync';
     private const USER_LOGIN_RENAME_ENDPOINT = '/v2/users/rename';
     private const USER_SEARCH_ENDPOINT = '/v2/users/search';
+    private const USER_DELETE_ENDPOINT = '/v2/users/delete';
     /**
      * @var EqueoClient
      */
@@ -71,5 +72,21 @@ class User implements UserSync, LoginRename, UserSearch
             $body['filters'] = $criteria->filters();
         }
         return $this->client->pagedRequest($method, self::USER_SEARCH_ENDPOINT, $criteria->params(), $body);
+    }
+
+    /**
+     * @param UserDeleteCriteria $criteria
+     * @return array
+     * @throws ApiException
+     */
+    public function delete(UserDeleteCriteria $criteria): array
+    {
+        $response = $this->client->deferredRequest('POST', self::USER_DELETE_ENDPOINT, [], [
+            'data' => [
+                'login' => $criteria->login()
+            ]
+        ]);
+
+        return $response['data'];
     }
 }
