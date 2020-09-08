@@ -46,6 +46,10 @@ class UserSearchCriteria
             $filters['login'] = $criteria['filters']['login'];
         }
 
+        if(isset($criteria['filters']['group']) && is_array($criteria['filters']['group'])) {
+            $filters['group'] = $criteria['filters']['group'];
+        }
+
         return $filters;
     }
 
