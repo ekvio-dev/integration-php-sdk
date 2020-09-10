@@ -81,7 +81,7 @@ class User implements UserSync, LoginRename, UserSearch, UserDelete
      */
     public function delete(UserDeleteCriteria $criteria): array
     {
-        $response = $this->client->deferredRequest('POST', self::USER_DELETE_ENDPOINT, [], [
+        $response = $this->client->deferredRequest('DELETE', self::USER_DELETE_ENDPOINT, [], [
             'data' => [
                 'login' => $criteria->login()
             ]

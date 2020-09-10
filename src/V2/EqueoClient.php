@@ -109,7 +109,7 @@ class EqueoClient
         ];
 
         try {
-            if(in_array($method, ['POST', 'PUT', 'PATCH'])) {
+            if(in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
                 $attributes['body'] = json_encode($body);
             }
 
