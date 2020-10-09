@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 use Ekvio\Integration\Sdk\V2\EqueoClient;
 use Ekvio\Integration\Sdk\V2\Integration\HttpIntegrationResult;
-use Ekvio\Integration\Sdk\V2\User\User;
+use Ekvio\Integration\Sdk\V2\User\UserApi;
 use Ekvio\Integration\Sdk\V2\User\UserSearchCriteria;
 use GuzzleHttp\Client;
 
@@ -29,7 +29,7 @@ $equeoClient = new EqueoClient(
     ]
 );
 
-$userApi = new User($equeoClient);
+$userApi = new UserApi($equeoClient);
 $users = $userApi->search(UserSearchCriteria::createFrom([
     'params' => [
         'fields' => ['login', 'forms'],
