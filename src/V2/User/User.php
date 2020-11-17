@@ -14,11 +14,13 @@ interface User
      * @return array
      */
     public function search(UserSearchCriteria $criteria): array;
+
     /**
      * @param array $users
+     * @param array $config
      * @return array
      */
-    public function sync(array $users): array;
+    public function sync(array $users, array $config = []): array;
     /**
      * @param UserDeleteCriteria $criteria
      * @return array

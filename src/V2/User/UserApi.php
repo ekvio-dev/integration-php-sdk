@@ -16,6 +16,10 @@ class UserApi implements User
     private const USER_LOGIN_RENAME_ENDPOINT = '/v2/users/rename';
     private const USER_SEARCH_ENDPOINT = '/v2/users/search';
     private const USER_DELETE_ENDPOINT = '/v2/users/delete';
+
+    private const DEFAULT_PARTIAL_SYNC = false;
+    private const DEFAULT_CHIEF_SYNC = false;
+    private const DEFAULT_NOTIFY_USERS = false;
     /**
      * @var EqueoClient
      */
@@ -32,13 +36,17 @@ class UserApi implements User
 
     /**
      * @param array $users
+     * @param array $config
      * @return array
      * @throws ApiException
      */
-    public function sync(array $users): array
+    public function sync(array $users, array $config = []): array
     {
         $response = $this->client->deferredRequest('POST', self::USER_SYNC_ENDPOINT, [], [
-            'data' => $users
+            'data' => $users,
+            'partial_sync' => $config['partial_sync'] ?? self::DEFAULT_PARTIAL_SYNC,
+            'chief_sync' => $config['chief_sync'] ?? self::DEFAULT_CHIEF_SYNC,
+            'notify_users' => $config['notify_users'] ?? self::DEFAULT_NOTIFY_USERS
         ]);
 
         return $response['data'];
