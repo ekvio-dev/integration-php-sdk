@@ -3,12 +3,19 @@ declare(strict_types=1);
 
 namespace Ekvio\Integration\Sdk\V2;
 
+use Ekvio\Integration\Sdk\V2\Event\Event;
+use Ekvio\Integration\Sdk\V2\Event\EventApi;
 use Ekvio\Integration\Sdk\V2\Integration\HttpIntegrationResult;
+use Ekvio\Integration\Sdk\V2\Kpi\Kpi;
 use Ekvio\Integration\Sdk\V2\Kpi\KpiApi;
-use Ekvio\Integration\Sdk\V2\LearningProgram\LearningProgram;
+use Ekvio\Integration\Sdk\V2\LearningProgram\Program;
+use Ekvio\Integration\Sdk\V2\LearningProgram\ProgramApi;
 use Ekvio\Integration\Sdk\V2\Material\Material;
 use Ekvio\Integration\Sdk\V2\Personal\Personal;
 use Ekvio\Integration\Sdk\V2\Task\Task;
+use Ekvio\Integration\Sdk\V2\Training\Training;
+use Ekvio\Integration\Sdk\V2\Training\TrainingApi;
+use Ekvio\Integration\Sdk\V2\User\User;
 use Ekvio\Integration\Sdk\V2\User\UserApi;
 use GuzzleHttp\Client;
 
@@ -18,35 +25,16 @@ use GuzzleHttp\Client;
  */
 class EqueoApi
 {
-    const HTTP_CLIENT_CONNECTION_TIMEOUT = 10;
-    /**
-     * @var EqueoClient
-     */
-    private $equeoClient;
-    /**
-     * @var LearningProgram
-     */
-    public $program;
-    /**
-     * @var Material
-     */
-    public $material;
-    /**
-     * @var Personal
-     */
-    public $personal;
-    /**
-     * @var Task
-     */
-    public $task;
-    /**
-     * @var UserApi
-     */
-    public $userApi;
-    /**
-     * @var KpiApi
-     */
-    public $kpiApi;
+    private const HTTP_CLIENT_CONNECTION_TIMEOUT = 10;
+    private EqueoClient $equeoClient;
+    public Program $program;
+    public Material $material;
+    public Personal $personal;
+    public Task $task;
+    public User $userApi;
+    public Kpi $kpiApi;
+    public Training $training;
+    public Event $event;
 
     /**
      * EqueoApi constructor.
@@ -57,12 +45,14 @@ class EqueoApi
     public function __construct(string $host, string $token, array $options = [])
     {
         $this->equeoClient = $this->buildEqueoClient($host, $token, $options);
-        $this->program = new LearningProgram($this->equeoClient);
+        $this->program = new ProgramApi($this->equeoClient);
         $this->material = new Material($this->equeoClient);
         $this->personal = new Personal($this->equeoClient);
         $this->task = new Task($this->equeoClient);
         $this->userApi = new UserApi($this->equeoClient);
         $this->kpiApi = new KpiApi($this->equeoClient);
+        $this->training = new TrainingApi($this->equeoClient);
+        $this->event = new EventApi($this->equeoClient);
     }
 
     /**

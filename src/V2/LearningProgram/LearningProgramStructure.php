@@ -6,6 +6,7 @@ namespace Ekvio\Integration\Sdk\V2\LearningProgram;
 /**
  * Interface LearningProgramStructure
  * @package Ekvio\Integration\Sdk\V2\LearningProgram
+ * @deprecated
  */
 interface LearningProgramStructure
 {

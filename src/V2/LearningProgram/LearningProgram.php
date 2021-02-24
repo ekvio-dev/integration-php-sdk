@@ -10,6 +10,7 @@ use GuzzleHttp\Exception\GuzzleException;
 /**
  * Class LearningProgram
  * @package Ekvio\Integration\Sdk\V2\LearningProgram
+ * @deprecated
  */
 class LearningProgram implements LearningProgramStructure, LearningProgramStatistic
 {
