@@ -32,8 +32,7 @@ class EventApi implements Event
      */
     public function search(EventSearchCriteria $criteria): array
     {
-        $response = $this->client->pagedRequest($criteria->method(), self::EVENTS_SEARCH_ENDPOINT, $criteria->queryParams());
-        return $response['data'];
+        return $this->client->pagedRequest($criteria->method(), self::EVENTS_SEARCH_ENDPOINT, $criteria->queryParams());
     }
 
     /**

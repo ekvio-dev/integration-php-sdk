@@ -32,8 +32,7 @@ class TrainingApi implements Training
      */
     public function search(TrainingSearchCriteria $criteria): array
     {
-        $response = $this->client->pagedRequest($criteria->method(), self::TRAININGS_SEARCH_ENDPOINT, $criteria->queryParams());
-        return $response['data'];
+        return $this->client->pagedRequest($criteria->method(), self::TRAININGS_SEARCH_ENDPOINT, $criteria->queryParams());
     }
 
     /**
