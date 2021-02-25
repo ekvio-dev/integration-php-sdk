@@ -11,7 +11,7 @@ class TrainingSearchCriteria
 {
     private const METHOD = 'GET';
     private array $fields = [];
-    private ?string $status;
+    private ?string $status = null;
     /**
      * TrainingSearchCriteria constructor.
      */

@@ -12,8 +12,8 @@ class ProgramSearchCriteria
     private const METHOD = 'GET';
     private array $fields = [];
     private array $include = [];
-    private ?string $programStatus;
-    private ?string $materialStatus;
+    private ?string $programStatus = null;
+    private ?string $materialStatus = null;
     /**
      * ProgramSearchCriteria constructor.
      */

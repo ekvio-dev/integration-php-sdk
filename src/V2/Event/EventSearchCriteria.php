@@ -11,8 +11,8 @@ class EventSearchCriteria
 {
     private const METHOD = 'GET';
     private array $fields = [];
-    private ?string $status;
-    private array $type;
+    private ?string $status = null;
+    private array $type = [];
 
     /**
      * TrainingSearchCriteria constructor.

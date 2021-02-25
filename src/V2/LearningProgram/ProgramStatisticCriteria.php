@@ -12,13 +12,13 @@ use RuntimeException;
  */
 class ProgramStatisticCriteria
 {
-    private const MAX_FILTE_LOGIN = 500;
-    private ?string $programStatus;
-    private ?string $materialStatus;
-    private ?string $userStatus;
+    private const MAX_FILTER_LOGIN = 500;
+    private ?string $programStatus = null;
+    private ?string $materialStatus = null;
+    private ?string $userStatus = null;
     private array $include = [];
-    private ?DateTimeImmutable $afterDate;
-    private ?DateTimeImmutable $toDate;
+    private ?DateTimeImmutable $afterDate = null;
+    private ?DateTimeImmutable $toDate = null;
     private array $login = [];
     private bool $isPost = false;
 
@@ -142,8 +142,8 @@ class ProgramStatisticCriteria
      */
     public function filterByLogin(array $login): self
     {
-        if(count($login) > self::MAX_FILTE_LOGIN) {
-            throw new RuntimeException(sprintf('Maximum count login is %s', self::MAX_FILTE_LOGIN));
+        if(count($login) > self::MAX_FILTER_LOGIN) {
+            throw new RuntimeException(sprintf('Maximum count login is %s', self::MAX_FILTER_LOGIN));
         }
 
         $self = clone $this;

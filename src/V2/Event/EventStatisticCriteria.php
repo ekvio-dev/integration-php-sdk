@@ -9,9 +9,9 @@ namespace Ekvio\Integration\Sdk\V2\Event;
  */
 class EventStatisticCriteria
 {
-    private ?string $eventStatus;
+    private ?string $eventStatus = null;
     private array $eventType = [];
-    private ?string $userStatus;
+    private ?string $userStatus = null;
     private bool $isPost = false;
 
     /**

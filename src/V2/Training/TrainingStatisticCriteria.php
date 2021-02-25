@@ -12,8 +12,8 @@ use DateTimeImmutable;
 class TrainingStatisticCriteria
 {
     private const METHOD = 'GET';
-    private ?DateTimeImmutable $toDate;
-    private ?DateTimeImmutable $afterDate;
+    private ?DateTimeImmutable $toDate = null;
+    private ?DateTimeImmutable $afterDate = null;
     /**
      * TrainingSearchCriteria constructor.
      */
