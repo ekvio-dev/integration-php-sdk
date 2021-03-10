@@ -76,7 +76,7 @@ class TrainingStatisticCriteria
         }
 
         if($this->afterDate) {
-            $params['after_date'] = $this->toDate->format(DATE_ATOM);
+            $params['after_date'] = $this->afterDate->format(DATE_ATOM);
         }
 
         return $params;
