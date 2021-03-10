@@ -36,11 +36,11 @@ class TrainingApi implements Training
     }
 
     /**
-     * @param TrainingSearchCriteria $criteria
+     * @param TrainingStatisticCriteria $criteria
      * @return array
      * @throws ApiException
      */
-    public function statistic(TrainingSearchCriteria $criteria): array
+    public function statistic(TrainingStatisticCriteria $criteria): array
     {
         $response = $this->client->deferredRequest($criteria->method(), self::TRAININGS_STATISTIC_ENDPOINT, $criteria->queryParams());
         return $response['data'];

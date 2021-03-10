@@ -16,8 +16,8 @@ interface Training
     public function search(TrainingSearchCriteria $criteria): array;
 
     /**
-     * @param TrainingSearchCriteria $criteria
+     * @param TrainingStatisticCriteria $criteria
      * @return array
      */
-    public function statistic(TrainingSearchCriteria $criteria): array;
+    public function statistic(TrainingStatisticCriteria $criteria): array;
 }
