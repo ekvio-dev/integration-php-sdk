@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Ekvio\Integration\Sdk\V2\Event;
 
+use DateTimeImmutable;
+
 /**
  * Class EventStatisticCriteria
  * @package Ekvio\Integration\Sdk\V2\Event
@@ -13,6 +15,8 @@ class EventStatisticCriteria
     private array $eventType = [];
     private ?string $userStatus = null;
     private bool $isPost = false;
+    private ?DateTimeImmutable $toDate = null;
+    private ?DateTimeImmutable $afterDate = null;
 
     /**
      * ProgramSearchCriteria constructor.
@@ -87,6 +91,28 @@ class EventStatisticCriteria
     }
 
     /**
+     * @param DateTimeImmutable $dateTime
+     * @return $this
+     */
+    public function withToDate(DateTimeImmutable $dateTime): self
+    {
+        $self = clone $this;
+        $self->toDate = $dateTime;
+        return $self;
+    }
+
+    /**
+     * @param DateTimeImmutable $dateTime
+     * @return $this
+     */
+    public function withAfterDate(DateTimeImmutable $dateTime): self
+    {
+        $self = clone $this;
+        $self->afterDate = $dateTime;
+        return $self;
+    }
+
+    /**
      * @return string
      */
     public function method(): string
@@ -110,6 +136,14 @@ class EventStatisticCriteria
 
         if($this->userStatus) {
             $params['user_status'] = $this->userStatus;
+        }
+
+        if($this->toDate) {
+            $params['to_date'] = $this->toDate->format(DATE_ATOM);
+        }
+
+        if($this->afterDate) {
+            $params['after_date'] = $this->afterDate->format(DATE_ATOM);
         }
 
         return $params;
