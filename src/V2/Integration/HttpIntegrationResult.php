@@ -36,7 +36,14 @@ class HttpIntegrationResult implements IntegrationResult
             $url = $this->modifyUrlHost($url);
         }
 
-        $content = file_get_contents($url);
+        $context = stream_context_create([
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ]
+        ]);
+
+        $content = file_get_contents($url, false, $context);
         if($content === false) {
             ApiException::apiFailed(sprintf('Error in retrieve integration result by %s', $url));
         }
