@@ -16,6 +16,7 @@ use Webmozart\Assert\Assert;
  */
 class EqueoClient
 {
+    private const STATUS_OK = 200;
     private const INTEGRATION_ENDPOINT = '/v2/integration/';
     private const REQUEST_INTERVAL_TIMEOUT = 10;
     private const REQUEST_MAX_COUNT = 100;
@@ -130,7 +131,22 @@ class EqueoClient
             $this->profile($url, json_encode($body, JSON_UNESCAPED_UNICODE));
 
             $response = $this->client->request($method, $url, $attributes);
-            return json_decode($response->getBody()->getContents(), true);
+
+            if($response->getStatusCode() !== self::STATUS_OK){
+                ApiException::failedRequest(sprintf('Response with code %s and reason %s', $response->getStatusCode(), $response->getReasonPhrase()));
+            }
+
+            $content = $response->getBody()->getContents();
+            if(!$content) {
+                ApiException::failedRequest(sprintf('For request %s get null response', $url));
+            }
+
+            $response = json_decode($content, true, JSON_THROW_ON_ERROR);
+            if(!is_array($response)) {
+                ApiException::failedRequest(sprintf('For request %s get not array after json_decode()', $url));
+            }
+
+            return $response;
         } catch (Throwable $exception) {
             ApiException::failedRequest($exception->getMessage());
         }
