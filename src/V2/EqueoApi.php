@@ -12,6 +12,7 @@ use Ekvio\Integration\Sdk\V2\LearningProgram\Program;
 use Ekvio\Integration\Sdk\V2\LearningProgram\ProgramApi;
 use Ekvio\Integration\Sdk\V2\Material\Material;
 use Ekvio\Integration\Sdk\V2\Personal\Personal;
+use Ekvio\Integration\Sdk\V2\Personal\PersonalApi;
 use Ekvio\Integration\Sdk\V2\Task\Task;
 use Ekvio\Integration\Sdk\V2\Training\Training;
 use Ekvio\Integration\Sdk\V2\Training\TrainingApi;
@@ -47,7 +48,7 @@ class EqueoApi
         $this->equeoClient = $this->buildEqueoClient($host, $token, $options);
         $this->program = new ProgramApi($this->equeoClient);
         $this->material = new Material($this->equeoClient);
-        $this->personal = new Personal($this->equeoClient);
+        $this->personal = new PersonalApi($this->equeoClient);
         $this->task = new Task($this->equeoClient);
         $this->userApi = new UserApi($this->equeoClient);
         $this->kpiApi = new KpiApi($this->equeoClient);

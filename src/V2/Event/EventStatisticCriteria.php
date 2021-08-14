@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Ekvio\Integration\Sdk\V2\Event;
 
 use DateTimeImmutable;
+use RuntimeException;
 
 /**
  * Class EventStatisticCriteria
@@ -11,12 +12,15 @@ use DateTimeImmutable;
  */
 class EventStatisticCriteria
 {
+    private const MAX_FILTER_COUNT = 500;
     private ?string $eventStatus = null;
     private array $eventType = [];
     private ?string $userStatus = null;
     private bool $isPost = false;
     private ?DateTimeImmutable $toDate = null;
     private ?DateTimeImmutable $afterDate = null;
+    private array $login = [];
+    private array $event = [];
 
     /**
      * ProgramSearchCriteria constructor.
@@ -121,6 +125,38 @@ class EventStatisticCriteria
     }
 
     /**
+     * @param array $logins
+     * @return $this
+     */
+    public function filterByLogin(array $logins): self
+    {
+        if(count($logins) > self::MAX_FILTER_COUNT) {
+            throw new RuntimeException(sprintf('Maximum count login is %s', self::MAX_FILTER_COUNT));
+        }
+
+        $self = clone $this;
+        $self->login = array_filter($logins, function ($login) {
+            return is_string($login) && mb_strlen($login) > 0;
+        });
+        $self->isPost = true;
+        return $self;
+    }
+
+    public function filterById(array $events): self
+    {
+        if(count($events) > self::MAX_FILTER_COUNT) {
+            throw new RuntimeException(sprintf('Maximum count id is %s', self::MAX_FILTER_COUNT));
+        }
+
+        $self = clone $this;
+        $self->event = array_filter($events, function ($eventId) {
+            return is_int($eventId) && $eventId > 0;
+        });
+        $self->isPost = true;
+        return $self;
+    }
+
+    /**
      * @return array
      */
     public function queryParams(): array
@@ -149,11 +185,22 @@ class EventStatisticCriteria
         return $params;
     }
 
+
+
     /**
      * @return array
      */
     public function body(): array
     {
-        return [];
+        $body = ['filters' => []];
+        if($this->login) {
+            $body['filters']['login'] = $this->login;
+        }
+
+        if($this->event) {
+            $body['filters']['event'] = $this->event;
+        }
+
+        return $body;
     }
 }

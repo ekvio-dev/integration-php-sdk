@@ -12,7 +12,7 @@ use RuntimeException;
  */
 class ProgramStatisticCriteria
 {
-    private const MAX_FILTER_LOGIN = 500;
+    private const MAX_FILTER_COUNT = 500;
     private ?string $programStatus = null;
     private ?string $materialStatus = null;
     private ?string $userStatus = null;
@@ -20,6 +20,7 @@ class ProgramStatisticCriteria
     private ?DateTimeImmutable $afterDate = null;
     private ?DateTimeImmutable $toDate = null;
     private array $login = [];
+    private array $program = [];
     private bool $isPost = false;
 
     /**
@@ -137,17 +138,33 @@ class ProgramStatisticCriteria
     }
 
     /**
-     * @param array $login
+     * @param array $logins
      * @return $this
      */
-    public function filterByLogin(array $login): self
+    public function filterByLogin(array $logins): self
     {
-        if(count($login) > self::MAX_FILTER_LOGIN) {
-            throw new RuntimeException(sprintf('Maximum count login is %s', self::MAX_FILTER_LOGIN));
+        if(count($logins) > self::MAX_FILTER_COUNT) {
+            throw new RuntimeException(sprintf('Maximum count login is %s', self::MAX_FILTER_COUNT));
         }
 
         $self = clone $this;
-        $self->login = array_filter($login);
+        $self->login = array_filter($logins, function ($login) {
+            return is_string($login) && mb_strlen($login) > 0;
+        });
+        $self->isPost = true;
+        return $self;
+    }
+
+    public function filterById(array $programs): self
+    {
+        if(count($programs) > self::MAX_FILTER_COUNT) {
+            throw new RuntimeException(sprintf('Maximum count id is %s', self::MAX_FILTER_COUNT));
+        }
+
+        $self = clone $this;
+        $self->program = array_filter($programs, function ($programId) {
+            return is_int($programId) && $programId > 0;
+        });
         $self->isPost = true;
         return $self;
     }
@@ -201,6 +218,10 @@ class ProgramStatisticCriteria
         $body = ['filters' => []];
         if($this->login) {
             $body['filters']['login'] = $this->login;
+        }
+
+        if($this->program) {
+            $body['filters']['program'] = $this->program;
         }
 
         return $body;
