@@ -151,7 +151,6 @@ class ProgramStatisticCriteria
         $self->login = array_filter($logins, function ($login) {
             return is_string($login) && mb_strlen($login) > 0;
         });
-        $self->isPost = true;
         return $self;
     }
 
@@ -165,7 +164,6 @@ class ProgramStatisticCriteria
         $self->program = array_filter($programs, function ($programId) {
             return is_int($programId) && $programId > 0;
         });
-        $self->isPost = true;
         return $self;
     }
 
@@ -174,7 +172,7 @@ class ProgramStatisticCriteria
      */
     public function method(): string
     {
-        return $this->isPost ? 'POST' : 'GET';
+        return (count($this->login) > 0 || count($this->program) > 0) ? 'POST' : 'GET';
     }
 
     /**

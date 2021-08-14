@@ -16,7 +16,6 @@ class EventStatisticCriteria
     private ?string $eventStatus = null;
     private array $eventType = [];
     private ?string $userStatus = null;
-    private bool $isPost = false;
     private ?DateTimeImmutable $toDate = null;
     private ?DateTimeImmutable $afterDate = null;
     private array $login = [];
@@ -121,7 +120,7 @@ class EventStatisticCriteria
      */
     public function method(): string
     {
-        return $this->isPost ? 'POST' : 'GET';
+        return (count($this->login) > 0 || count($this->event) ) ? 'POST' : 'GET';
     }
 
     /**
@@ -138,7 +137,6 @@ class EventStatisticCriteria
         $self->login = array_filter($logins, function ($login) {
             return is_string($login) && mb_strlen($login) > 0;
         });
-        $self->isPost = true;
         return $self;
     }
 
@@ -152,7 +150,6 @@ class EventStatisticCriteria
         $self->event = array_filter($events, function ($eventId) {
             return is_int($eventId) && $eventId > 0;
         });
-        $self->isPost = true;
         return $self;
     }
 
