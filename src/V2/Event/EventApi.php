@@ -41,7 +41,7 @@ class EventApi implements Event
      */
     public function statistic(EventStatisticCriteria $criteria): array
     {
-        $response = $this->client->deferredRequest($criteria->method(), self::EVENTS_STATISTIC_ENDPOINT, $criteria->queryParams());
+        $response = $this->client->deferredRequest($criteria->method(), self::EVENTS_STATISTIC_ENDPOINT, $criteria->queryParams(), $criteria->body());
         return $response['data'];
     }
 }
