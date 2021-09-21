@@ -55,6 +55,18 @@ class EqueoClient
     private $debugRequestBody;
 
     /**
+     * @var array Http client default options
+     */
+    private $httpClientOptions = [
+        'headers' => [
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json'
+        ],
+        'http_errors' => false,
+        'verify' => false
+    ];
+
+    /**
      * Equeo constructor.
      * @param ClientInterface $client
      * @param IntegrationResult $integrationResult
@@ -90,6 +102,10 @@ class EqueoClient
         if(array_key_exists('debug_request_body', $options)) {
             $this->debugRequestBody = (bool) $options['debug_request_body'];
         }
+
+        if(array_key_exists('http_client', $options) && is_array($options['http_client'])) {
+            $this->httpClientOptions = $options['http_client'];
+        }
     }
 
     /**
@@ -102,12 +118,11 @@ class EqueoClient
      */
     public function request(string $method, string $endpoint, array $queryParams = [], array $body = []): array
     {
-        $attributes = [
-            'verify' => false,
+        $attributes = array_replace_recursive($this->httpClientOptions, [
             'headers' => [
-                'Authorization' => "Bearer {$this->token}"
+                'Authorization' => "Bearer {$this->token}",
             ],
-        ];
+        ]);
 
         try {
             if(in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
@@ -133,7 +148,7 @@ class EqueoClient
             $response = $this->client->request($method, $url, $attributes);
 
             if($response->getStatusCode() !== self::STATUS_OK){
-                ApiException::failedRequest(sprintf('Response with code %s and reason %s', $response->getStatusCode(), $response->getReasonPhrase()));
+                ApiException::failedRequest(sprintf('For request %s get response with code %s and reason %s', $url, $response->getStatusCode(), $response->getReasonPhrase()));
             }
 
             $content = $response->getBody()->getContents();

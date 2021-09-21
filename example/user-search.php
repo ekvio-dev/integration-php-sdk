@@ -25,7 +25,7 @@ $equeoClient = new EqueoClient(
     [
         'request_interval_timeout' => 10,
         'debug' => true,
-        'debug_request_body' => true
+        'debug_request_body' => true,
     ]
 );
 
