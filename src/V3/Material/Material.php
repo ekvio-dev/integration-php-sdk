@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Ekvio\Integration\Sdk\V3\Material;
 
 use Ekvio\Integration\Sdk\ApiException;
-use Ekvio\Integration\Sdk\V2\EqueoClient;
+use Ekvio\Integration\Sdk\V3\EqueoClient;
 
 /**
  * Class Material
@@ -12,7 +12,7 @@ use Ekvio\Integration\Sdk\V2\EqueoClient;
  */
 class Material implements MaterialStatistic
 {
-    private const MATERIALS_STATISTIC_ENDPOINT = '/v2/materials/statistic';
+    private const MATERIALS_STATISTIC_ENDPOINT = '/v3/materials/statistic';
     /**
      * @var EqueoClient
      */

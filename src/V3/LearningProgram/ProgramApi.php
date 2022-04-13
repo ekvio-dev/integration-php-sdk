@@ -12,8 +12,8 @@ use Ekvio\Integration\Sdk\V3\EqueoClient;
  */
 class ProgramApi implements Program
 {
-    private const LEARNING_PROGRAMS_STRUCTURE_ENDPOINT = '/v2/learning-programmes';
-    private const LEARNING_PROGRAMS_STATISTIC_ENDPOINT = '/v2/learning-programmes/statistic';
+    private const LEARNING_PROGRAMS_STRUCTURE_ENDPOINT = '/v3/learning-programmes';
+    private const LEARNING_PROGRAMS_STATISTIC_ENDPOINT = '/v3/learning-programmes/statistic';
     private EqueoClient $client;
 
     /**
