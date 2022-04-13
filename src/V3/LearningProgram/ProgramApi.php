@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Ekvio\Integration\Sdk\V3\LearningProgram;
 
 use Ekvio\Integration\Sdk\ApiException;
-use Ekvio\Integration\Sdk\V2\EqueoClient;
+use Ekvio\Integration\Sdk\V3\EqueoClient;
 
 /**
  * Class ProgramApi
