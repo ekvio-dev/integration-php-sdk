@@ -12,8 +12,8 @@ use Ekvio\Integration\Sdk\V3\EqueoClient;
  */
 class GroupApi implements Group
 {
-    private const GROUP_SEARCH_ENDPOINT = '/v3/users/search';
-    private const GROUP_UPDATE_ENDPOINT = '/v2/users/delete';
+    private const GROUP_SEARCH_ENDPOINT = '/v3/groups/search';
+    private const GROUP_UPDATE_ENDPOINT = '/v2/groups/delete';
 
     /**
      * @var EqueoClient
@@ -36,10 +36,9 @@ class GroupApi implements Group
      */
     public function search(GroupSearchCriteria $criteria): array
     {
-        $method = 'GET';
+        $method = 'POST';
         $body = [];
         if($criteria->filters()) {
-            $method = 'POST';
             $body['filters'] = $criteria->filters();
         }
         return $this->client->pagedRequest($method, self::GROUP_SEARCH_ENDPOINT, $criteria->params(), $body);
