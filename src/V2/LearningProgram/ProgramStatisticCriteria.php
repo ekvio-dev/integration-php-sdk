@@ -21,6 +21,7 @@ class ProgramStatisticCriteria
     private ?DateTimeImmutable $toDate = null;
     private array $login = [];
     private array $program = [];
+    private array $category = [];
     private bool $isPost = false;
 
     /**
@@ -167,6 +168,19 @@ class ProgramStatisticCriteria
         return $self;
     }
 
+    public function filterByCategories(array $categories): self
+    {
+        if(count($categories) > self::MAX_FILTER_COUNT) {
+            throw new RuntimeException(sprintf('Maximum count category is %s', self::MAX_FILTER_COUNT));
+        }
+
+        $self = clone $this;
+        $self->category = array_filter($categories, function ($categoryId) {
+            return is_int($categoryId) && $categoryId > 0;
+        });
+        return $self;
+    }
+
     /**
      * @return string
      */
@@ -220,6 +234,10 @@ class ProgramStatisticCriteria
 
         if($this->program) {
             $body['filters']['program'] = $this->program;
+        }
+
+        if($this->category) {
+            $body['filters']['category'] = $this->category;
         }
 
         return $body;
