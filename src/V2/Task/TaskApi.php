@@ -6,7 +6,7 @@ namespace Ekvio\Integration\Sdk\V2\Task;
 
 use Ekvio\Integration\Sdk\V2\EqueoClient;
 
-class TaskApi
+class TaskApi implements Tasks
 {
     private const TASKS_STATISTIC_ENDPOINT = '/v2/tasks/statistic';
 
