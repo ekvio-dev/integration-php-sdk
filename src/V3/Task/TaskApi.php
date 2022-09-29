@@ -9,6 +9,7 @@ use Ekvio\Integration\Sdk\V3\EqueoClient;
 class TaskApi implements Task
 {
     private const TASKS_STATISTIC_ENDPOINT = '/v2/tasks/statistic';
+    private const TASK_STATUSES_UPDATE_ENDPOINT = '/v2/tasks/answers/statuses';
 
     private EqueoClient $client;
 
@@ -24,6 +25,20 @@ class TaskApi implements Task
             self::TASKS_STATISTIC_ENDPOINT,
             $criteria->queryParams(),
             $criteria->body()
+        );
+
+        return $response['data'];
+    }
+
+    public function updateStatuses(array $statuses): array
+    {
+        $response = $this->client->deferredRequest(
+            'PUT',
+            self::TASK_STATUSES_UPDATE_ENDPOINT,
+            [],
+            [
+                'data' => $statuses
+            ]
         );
 
         return $response['data'];
