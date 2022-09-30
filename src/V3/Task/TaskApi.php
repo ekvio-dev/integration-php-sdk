@@ -10,6 +10,7 @@ class TaskApi implements Task
 {
     private const TASKS_STATISTIC_ENDPOINT = '/v2/tasks/statistic';
     private const TASKS_FIELDS_SEARCH_ENDPOINT = '/v2/tasks/fields/search';
+    private const TASK_STATUSES_UPDATE_ENDPOINT = '/v2/tasks/answers/statuses';
 
     private EqueoClient $client;
 
@@ -40,5 +41,19 @@ class TaskApi implements Task
         );
 
         return $response;
+    }
+
+    public function updateStatuses(array $statuses): array
+    {
+        $response = $this->client->deferredRequest(
+            'PUT',
+            self::TASK_STATUSES_UPDATE_ENDPOINT,
+            [],
+            [
+                'data' => $statuses
+            ]
+        );
+
+        return $response['data'];
     }
 }
