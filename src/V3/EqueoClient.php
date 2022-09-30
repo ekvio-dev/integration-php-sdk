@@ -167,6 +167,29 @@ class EqueoClient
         }
     }
 
+    public function getFileFromUrl($url)
+    {
+        $attributes = array_replace_recursive($this->httpClientOptions, [
+            'headers' => [
+                'Authorization' => "Bearer {$this->token}",
+            ],
+        ]);
+
+        $response = $this->client->request('GET', $url, $attributes);
+
+        if($response->getStatusCode() !== self::STATUS_OK){
+            ApiException::failedRequest(sprintf('For request %s get response with code %s and reason %s', $url, $response->getStatusCode(), $response->getReasonPhrase()));
+        }
+
+        $content = $response->getBody()->getContents();
+
+        if(!$content) {
+            ApiException::failedRequest(sprintf('For request %s get null response', $url));
+        }
+
+        return $content;
+    }
+
     /**
      * @param string $method
      * @param string $endpoint
