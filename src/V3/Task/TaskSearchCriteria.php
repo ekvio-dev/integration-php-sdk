@@ -21,9 +21,6 @@ class TaskSearchCriteria extends Criteria
 
     public function onlyFields(array $fields): self
     {
-        Assert::notEmpty($status, 'Task status required.');
-        Assert::inArray($status, self::TASK_FIELDS, 'Task status invalid. Use active or hide.');
-
         return $this->cloneWithParam('fields', $fields);
     }
 
@@ -45,7 +42,7 @@ class TaskSearchCriteria extends Criteria
 
     public function onlyFieldsFilter(array $fields): self
     {
-        Assert::maxCount($tasks, 500, 'Task IDs exceed 500 elements.');
+        Assert::maxCount($fields, 500, 'Task IDs exceed 500 elements.');
 
         return $this->cloneWithFilter('field', $fields);
     }
