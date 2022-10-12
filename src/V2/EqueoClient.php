@@ -272,6 +272,10 @@ class EqueoClient
             if(isset($content['errors'])) {
                 ApiException::apiErrors($content['errors']);
             }
+            if (empty($content))
+            {
+                return $this->integration($integrationId, $maxCountRequest - 1);
+            }
             return $content;
         }
 
