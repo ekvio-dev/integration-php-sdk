@@ -12,15 +12,15 @@ use Webmozart\Assert\Assert;
 
 /**
  * Class EqueoClient
- * @package Ekvio\Integration\Sdk\V2
+ * @package Ekvio\Integration\Sdk\V3
  */
 class EqueoClient
 {
     private const STATUS_OK = 200;
     private const INTEGRATION_ENDPOINT = '/v3/integration/';
     private const REQUEST_INTERVAL_TIMEOUT = 10;
-    private const REQUEST_MAX_COUNT = 100;
-    private const REQUEST_MAX_COUNT_BOUNDARY = 0;
+    private const DEFAULT_RETRY_COUNT = 100;
+    private const RETRY_COUNT_STOP = 0;
 
     /**
      * @var ClientInterface
@@ -55,6 +55,16 @@ class EqueoClient
     private $debugRequestBody;
 
     /**
+     * @var int retry counter
+     */
+    private $retryCount;
+
+    /**
+     * @var bool request interval flag
+     */
+    private $request_interval = true;
+
+    /**
      * @var array Http client default options
      */
     private $httpClientOptions = [
@@ -66,14 +76,6 @@ class EqueoClient
         'verify' => false
     ];
 
-    /**
-     * Equeo constructor.
-     * @param ClientInterface $client
-     * @param IntegrationResult $integrationResult
-     * @param string $host
-     * @param string $token
-     * @param array $options
-     */
     public function __construct(ClientInterface $client, IntegrationResult $integrationResult, string $host, string $token, array $options = [])
     {
         Assert::notEmpty($host, 'API host required');
@@ -91,6 +93,10 @@ class EqueoClient
      */
     private function configureOptions(array $options): void
     {
+        if(array_key_exists('request_interval', $options) && is_bool($options['request_interval'])) {
+            $this->request_interval = $options['request_interval'];
+        }
+
         if(array_key_exists('request_interval_timeout', $options) && (int) $options['request_interval_timeout'] > 0) {
             $this->requestIntervalTimeout = (int) $options['request_interval_timeout'];
         }
@@ -106,14 +112,18 @@ class EqueoClient
         if(array_key_exists('http_client', $options) && is_array($options['http_client'])) {
             $this->httpClientOptions = $options['http_client'];
         }
+
+        if(array_key_exists('retry_count', $options) && is_int($options['retry_count'])) {
+            Assert::natural($options['retry_count']);
+            Assert::lessThan($options['retry_count'], self::DEFAULT_RETRY_COUNT);
+
+            $this->retryCount = $options['retry_count'];
+        } else {
+            $this->retryCount = self::DEFAULT_RETRY_COUNT;
+        }
     }
 
     /**
-     * @param string $method
-     * @param string $endpoint
-     * @param array $queryParams
-     * @param array $body
-     * @return array
      * @throws ApiException
      */
     public function request(string $method, string $endpoint, array $queryParams = [], array $body = []): array
@@ -191,11 +201,6 @@ class EqueoClient
     }
 
     /**
-     * @param string $method
-     * @param string $endpoint
-     * @param array $queryParams
-     * @param array $body
-     * @return array
      * @throws ApiException
      */
     public function pagedRequest(string $method, string $endpoint, array $queryParams = [], array $body = []): array
@@ -217,7 +222,6 @@ class EqueoClient
     }
 
     /**
-     * @param array $response
      * @throws ApiException
      */
     private function raiseExceptionIfErrorResponse(array $response): void
@@ -232,11 +236,6 @@ class EqueoClient
     }
 
     /**
-     * @param string $method
-     * @param string $endpoint
-     * @param array $queryParams
-     * @param array $body
-     * @return array
      * @throws ApiException
      *
      */
@@ -248,21 +247,25 @@ class EqueoClient
             ApiException::apiErrors($response['errors']);
         }
 
-        $integration = (int) $response['data']['integration'];
+        $integration = $response['data']['integration'] ?? null;
+        if(is_null($integration)) {
+            ApiException::apiBadFormatResponse('not integration structure for deferred request');
+        }
 
-        return $this->integration($integration);
+        $integration = (int) $response['data']['integration'];
+        if($integration <= 0) {
+            ApiException::failedRequest('integration ID must be natural integer');
+        }
+
+        return $this->integration($integration, $this->retryCount);
     }
 
     /**
-     * @param int $integrationId
-     * @param int $maxCountRequest
-     * @return array
      * @throws ApiException
-     * @noinspection PhpInconsistentReturnPointsInspection
      */
-    public function integration(int $integrationId, int $maxCountRequest = self::REQUEST_MAX_COUNT): array
+    public function integration(int $integrationId, int $retryCount = self::DEFAULT_RETRY_COUNT): array
     {
-        $currentStep = self::REQUEST_MAX_COUNT - $maxCountRequest + 1;
+        $currentStep = ($this->retryCount + 1) - $retryCount;
         $this->profile(sprintf('Checking integration task status. Step: %s', $currentStep));
 
         $uri = sprintf('%s%s', self::INTEGRATION_ENDPOINT, $integrationId);
@@ -295,16 +298,23 @@ class EqueoClient
             if(isset($content['errors'])) {
                 ApiException::apiErrors($content['errors']);
             }
-            return $content;
+
+            if (isset($content['data'])) {
+                return $content;
+            }
         }
 
-        if(self::REQUEST_MAX_COUNT_BOUNDARY < $maxCountRequest) {
-            $this->profile(sprintf('Integration ID: %s, status: %s, sleep timeout: %ss', $integrationId, $status, $this->requestIntervalTimeout));
-            sleep($this->requestIntervalTimeout);
-            return $this->integration($integrationId, $maxCountRequest - 1);
+        if($retryCount > self::RETRY_COUNT_STOP) {
+
+            if($this->request_interval) {
+                $this->profile(sprintf('Integration ID: %s, status: %s, sleep timeout: %ss', $integrationId, $status, $this->requestIntervalTimeout));
+                sleep($this->requestIntervalTimeout);
+            }
+
+            return $this->integration($integrationId, $retryCount - 1);
         }
 
-        ApiException::failedRequest(sprintf('For integration %s status %s was not change', $integrationId, $status));
+        ApiException::failedRequest(sprintf('integration %s status %s was not change or data from link %s is empty', $integrationId, $status, $file));
     }
 
     /**

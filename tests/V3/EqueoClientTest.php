@@ -3,12 +3,10 @@ declare(strict_types=1);
 
 namespace Ekvio\Integration\Sdk\Tests\V3;
 
+use Ekvio\Integration\Sdk\ApiException;
 use Ekvio\Integration\Sdk\Common\Integration\HttpIntegrationResult;
 use Ekvio\Integration\Sdk\Tests\HttpDummyResult;
-use Ekvio\Integration\Sdk\V3\User\UserDeleteCriteria;
-use Ekvio\Integration\Sdk\V3\User\UserSearchCriteria;
 use Ekvio\Integration\Sdk\V3\EqueoClient;
-use Ekvio\Integration\Sdk\V3\User\UserApi;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -20,20 +18,6 @@ use PHPUnit\Framework\TestCase;
 
 class EqueoClientTest extends TestCase
 {
-    private function getMockClient(array &$container, array $responses = []): Client
-    {
-        if(!$responses) {
-            $responses = [new Response(200, ['X-Foo' => 'Bar'], '{"data": []}')];
-        }
-
-        $mock = new MockHandler($responses);
-        $history = Middleware::history($container);
-        $handlerStack = HandlerStack::create($mock);
-        $handlerStack->push($history);
-
-        return new Client(['handler' => $handlerStack]);
-    }
-
     public function testRaiseExceptionIfNoApiHost()
     {
         $this->expectException(InvalidArgumentException::class);
@@ -67,100 +51,163 @@ class EqueoClientTest extends TestCase
         }
     }
 
-    public function testApiUsersSyncRequest()
+    public function testRaiseExceptionWhenDeferredRequestReturnBadIntegrationStructureResponse()
     {
+        $this->expectException(ApiException::class);
         $container = [];
         $client = $this->getMockClient($container, [
-            new Response(200, [], '{"data": {"integration": 1}}'),
-            new Response(200, [], '{"data": {"status": "completed", "file": "link-me"}}')
+            new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integra":100}}')
         ]);
-        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
-        $userApi = new UserApi($equeoClient);
-        $userApi->sync([['login' => 'test']]);
 
-        /** @var Request $request */
-        $request = $container[0]['request'];
-        $this->assertEquals('POST', $request->getMethod());
-        $this->assertEquals('test.dev', $request->getUri()->getHost());
-        $this->assertEquals('/v3/users/sync', $request->getUri()->getPath());
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
+        $equeoClient->deferredRequest('POST', '/v2/users/sync', ['data' => []]);
     }
 
-    public function testApiUsersSearchRequest()
+    public function testRaiseExceptionWhenDeferredRequestReturnNotNaturalIntegrationId()
     {
+        $this->expectException(ApiException::class);
         $container = [];
         $client = $this->getMockClient($container, [
-            new Response(200, [], '{"data":[]}'),
-            new Response(200, [], '{"data":[]}'),
+            new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integration":-100}}')
         ]);
         $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
-        $userApi = new UserApi($equeoClient);
-        $userApi->search(UserSearchCriteria::createFrom([]));
-        $userApi->search(UserSearchCriteria::createFrom(['params' => [
-            'fields' => ['login','first_name'],
-            'include' => ['groups']
-        ]]));
-
-        /** @var Request $request */
-        $request = $container[0]['request'];
-        $this->assertEquals('GET', $request->getMethod());
-        $this->assertEquals('test.dev', $request->getUri()->getHost());
-        $this->assertEquals('/v3/users/search', $request->getUri()->getPath());
-
-        /** @var Request $request */
-        $request = $container[1]['request'];
-        $this->assertEquals('GET', $request->getMethod());
-        $this->assertEquals('test.dev', $request->getUri()->getHost());
-        $this->assertEquals('/v3/users/search', $request->getUri()->getPath());
-        $this->assertEquals('fields=login,first_name&include=groups', $request->getUri()->getQuery());
+        $equeoClient->deferredRequest('POST', '/v2/users/sync', ['data' => []]);
     }
 
-    public function testApiUsersRenameRequest()
+    public function testRaiseExceptionWhenDeferredRequestReturnErrorsInIntegrationResponse()
     {
+        $this->expectException(ApiException::class);
         $container = [];
         $client = $this->getMockClient($container, [
-            new Response(200, [], '{"data": {"integration": 1}}'),
-            new Response(200, [], '{"data": {"status": "completed", "file": "link-me"}}')
+            new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integration":100}}'),
+            new Response(200, [], '{"errors":[{"code": 100, "message": "Bad request"}]}')
         ]);
         $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
-        $userApi = new UserApi($equeoClient);
-        $loginsRename = [
-            ['from' => 'test', 'to' => 'test2'],
-            ['from' => 'test3', 'to' => 'test4']
+        $equeoClient->deferredRequest('POST', '/v2/users/sync', ['data' => []]);
+    }
+
+    public function testRaiseExceptionWhenDeferredRequestReturnInvalidStructureResponse()
+    {
+        $this->expectException(ApiException::class);
+        $container = [];
+        $client = $this->getMockClient($container, [
+            new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integration":100}}'),
+            new Response(200, [], '{"data":{"invalid_status":"failed"}}')
+        ]);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
+        $equeoClient->deferredRequest('POST', '/v2/users/sync', ['data' => []]);
+    }
+
+    public function testRaiseExceptionWhenDeferredRequestReturnResponseWithoutFileLink()
+    {
+        $this->expectException(ApiException::class);
+        $container = [];
+        $client = $this->getMockClient($container, [
+            new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integration":100}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"completed"}}'),
+        ]);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', [
+            'request_interval' => false
+        ]);
+        $equeoClient->deferredRequest('POST', '/users/sync', ['data' => []]);
+    }
+
+    public function testRaiseExceptionWhenDeferredRequestFailedAfterExceedRetryCount()
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('Bad request: integration 100 status progress was not change or data from link  is empty');
+
+        $container = [];
+        $client = $this->getMockClient($container, [
+            new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integration":100}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"completed"}}'),
+        ]);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', [
+            'request_interval' => false,
+            'retry_count' => 3
+        ]);
+        $equeoClient->deferredRequest('POST', '/users/sync', ['data' => []]);
+    }
+
+    public function testRaiseExceptionWhenDeferredRequestFailedAfterExceedRetryCountWithEmptyBody()
+    {
+        $this->expectException(ApiException::class);
+        $this->expectExceptionMessage('Bad request: integration 100 status completed was not change or data from link http://dev.link is empty');
+
+        $container = [];
+        $client = $this->getMockClient($container, [
+            new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integration":100}}'),
+            new Response(200, [], '{"data":{"status":"completed","file":"http://dev.link"}}'),
+            new Response(200, [], '{"data":{"status":"completed","file":"http://dev.link"}}'),
+            new Response(200, [], '{"data":{"status":"completed","file":"http://dev.link"}}'),
+            new Response(200, [], '{"data":{"status":"completed","file":"http://dev.link"}}'),
+            new Response(200, [], '{"data":{"status":"completed","file":"http://dev.link"}}'),
+            new Response(200, [], '{"data":{"status":"completed","file":"http://dev.link"}}'),
+        ]);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult('null'), 'http://test.dev', '12345', [
+            'request_interval' => false,
+            'retry_count' => 3
+        ]);
+        $equeoClient->deferredRequest('POST', '/users/sync', ['data' => []]);
+    }
+
+    public function testSuccessDeferredRequest()
+    {
+        $responses = [
+            new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integration":100}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"completed", "file": "http://result.link"}}'),
         ];
-        $userApi->rename($loginsRename);
 
-        /** @var Request $request */
-        $request = $container[0]['request'];
-        $this->assertEquals('POST', $request->getMethod());
-        $this->assertEquals('test.dev', $request->getUri()->getHost());
-        $this->assertEquals('/v2/users/rename', $request->getUri()->getPath());
+        $container = [];
+        $client = $this->getMockClient($container, $responses);
 
-        $body = (string) $request->getBody();
-        $data = json_decode($body, true);
-        $this->assertEquals($data['data'], $loginsRename);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult('{"data": [{"field": "Hello"}]}'), 'http://test.dev', '12345', [
+            'request_interval' => false
+        ]);
+        $response = $equeoClient->deferredRequest('POST', '/users/sync', ['data' => []]);
+
+        $this->assertCount(count($responses), $container);
+        $this->assertEquals(['data' => [['field' => 'Hello']]], $response);
     }
 
-    public function testApiUsersDeleteRequest()
+    public function testSuccessPagedRequest()
     {
+        $responses = [
+            new Response(200, [], '{"data":[{"user": 1}], "meta": {"pagination":{"total": 2,"count": 1,"per_page": 1,"current_page": 1,"total_pages": 2,"links": {"next": "/v2/url?page=2"}}}}'),
+            new Response(200, [], '{"data":[{"user": 2}], "meta": {"pagination":{"total": 2,"count": 1,"per_page": 1,"current_page": 2,"total_pages": 2,"links": {"previous":"/v2/url?page=1"}}}}'),
+        ];
+
         $container = [];
-        $client = $this->getMockClient($container, [
-            new Response(200, [], '{"data": {"integration": 1}}'),
-            new Response(200, [], '{"data": {"status": "completed", "file": "link-me"}}')
-        ]);
+        $client = $this->getMockClient($container, $responses);
+
         $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
-        $userApi = new UserApi($equeoClient);
+        $response = $equeoClient->pagedRequest('GET', 'users/search');
 
-        $loginsDeleteCriteria = ['login' => ['test', 'test2', 'test3']];
-        $userApi->delete(UserDeleteCriteria::createFrom($loginsDeleteCriteria));
+        $this->assertCount(count($responses), $container);
+        $this->assertEquals([['user' => 1], ['user' => 2]], $response);
+    }
 
-        /** @var Request $request */
-        $request = $container[0]['request'];
-        $this->assertEquals('DELETE', $request->getMethod());
-        $this->assertEquals('test.dev', $request->getUri()->getHost());
-        $this->assertEquals('/v2/users/delete', $request->getUri()->getPath());
+    private function getMockClient(array &$container, array $responses = []): Client
+    {
+        if(!$responses) {
+            $responses = [new Response(200, ['X-Foo' => 'Bar'], '{"data": []}')];
+        }
 
-        $body = (string) $request->getBody();
-        $data = json_decode($body, true);
-        $this->assertEquals($data['data'], $loginsDeleteCriteria);
+        $mock = new MockHandler($responses);
+        $history = Middleware::history($container);
+        $handlerStack = HandlerStack::create($mock);
+        $handlerStack->push($history);
+
+        return new Client(['handler' => $handlerStack]);
     }
 }
