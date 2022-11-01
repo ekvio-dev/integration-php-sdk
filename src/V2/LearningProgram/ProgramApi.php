@@ -62,7 +62,7 @@ class ProgramApi implements Program
      * @return array
      * @throws ApiException
      */
-    public function createAssignments(array $assignments): array
+    public function createIndividualAssignments(array $assignments): array
     {
         $response = $this->client->deferredRequest(
             'POST',
