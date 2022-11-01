@@ -14,6 +14,7 @@ class ProgramApi implements Program
 {
     private const LEARNING_PROGRAMS_STRUCTURE_ENDPOINT = '/v3/learning-programmes';
     private const LEARNING_PROGRAMS_STATISTIC_ENDPOINT = '/v3/learning-programmes/statistic';
+    private const LEARNING_PROGRAMS_ASSIGNMENT_PERSONAL = '/v3/learning-programmes/assignments/personal';
     private EqueoClient $client;
 
     /**
@@ -53,6 +54,23 @@ class ProgramApi implements Program
             $criteria->queryParams(),
             $criteria->body()
         );
+        return $response['data'];
+    }
+
+    /**
+     * @param array $assignments
+     * @return array
+     * @throws ApiException
+     */
+    public function createAssignments(array $assignments): array
+    {
+        $response = $this->client->deferredRequest(
+            'POST',
+            self::LEARNING_PROGRAMS_ASSIGNMENT_PERSONAL,
+            [],
+            ['data' => $assignments]
+        );
+
         return $response['data'];
     }
 }
