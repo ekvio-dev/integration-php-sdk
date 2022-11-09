@@ -20,4 +20,10 @@ interface Program
      * @return array
      */
     public function statistic(ProgramStatisticCriteria $criteria): array;
+
+    /**
+     * @param ProgramSearchCategoryCriteria $criteria
+     * @return array
+     */
+    public function searchCategories(ProgramSearchCategoryCriteria $criteria): array;
 }

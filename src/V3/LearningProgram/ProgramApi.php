@@ -13,6 +13,7 @@ use Ekvio\Integration\Sdk\V3\EqueoClient;
 class ProgramApi implements Program
 {
     private const LEARNING_PROGRAMS_STRUCTURE_ENDPOINT = '/v3/learning-programmes';
+    private const LEARNING_PROGRAMS_CATEGORIES_ENDPOINT = '/v3/learning-programmes/categories';
     private const LEARNING_PROGRAMS_STATISTIC_ENDPOINT = '/v3/learning-programmes/statistic';
     private EqueoClient $client;
 
@@ -35,6 +36,21 @@ class ProgramApi implements Program
         $response = $this->client->request(
             $criteria->method(),
             self::LEARNING_PROGRAMS_STRUCTURE_ENDPOINT,
+            $criteria->queryParams()
+        );
+        return $response['data'];
+    }
+
+    /**
+     * @param ProgramSearchCriteria $criteria
+     * @return array
+     * @throws ApiException
+     */
+    public function searchCategories(ProgramSearchCategoryCriteria $criteria): array
+    {
+        $response = $this->client->request(
+            $criteria->method(),
+            self::LEARNING_PROGRAMS_CATEGORIES_ENDPOINT,
             $criteria->queryParams()
         );
         return $response['data'];
