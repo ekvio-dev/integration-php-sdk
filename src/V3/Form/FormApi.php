@@ -26,7 +26,7 @@ class FormApi implements Form
             $criteria->body()
         );
 
-        return $response['data'];
+        return $response;
     }
 
     public function createAutoAssignments(array $autoAssignments): array
