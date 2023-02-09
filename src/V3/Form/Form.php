@@ -26,4 +26,10 @@ interface Form
      * @return array
      */
     public function updateAutoAssignments(array $autoAssignments): array;
+
+    /**
+     * @param array $autoAssignments
+     * @return array
+     */
+    public function deleteAutoAssignments(array $autoAssignments): array;
 }

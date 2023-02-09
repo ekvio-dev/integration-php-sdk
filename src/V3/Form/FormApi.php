@@ -8,7 +8,7 @@ use Ekvio\Integration\Sdk\V3\EqueoClient;
 class FormApi implements Form
 {
     private const FORM_AUTO_ASSIGNMENTS_SEARCH_ENDPOINT = '/v3/forms/auto-assignments/search';
-    private const FORM_AUTO_ASSIGNMENTS_CREATE_AND_UPDATE_ENDPOINT = '/v3/forms/auto-assignments';
+    private const FORM_AUTO_ASSIGNMENTS_ENDPOINT = '/v3/forms/auto-assignments';
 
     private EqueoClient $client;
 
@@ -33,7 +33,7 @@ class FormApi implements Form
     {
         $response = $this->client->deferredRequest(
             'POST',
-            self::FORM_AUTO_ASSIGNMENTS_CREATE_AND_UPDATE_ENDPOINT,
+            self::FORM_AUTO_ASSIGNMENTS_ENDPOINT,
             [],
             ['data' => $autoAssignments]
         );
@@ -45,7 +45,19 @@ class FormApi implements Form
     {
         $response = $this->client->deferredRequest(
             'PUT',
-            self::FORM_AUTO_ASSIGNMENTS_CREATE_AND_UPDATE_ENDPOINT,
+            self::FORM_AUTO_ASSIGNMENTS_ENDPOINT,
+            [],
+            ['data' => $autoAssignments]
+        );
+
+        return $response['data'];
+    }
+
+    public function deleteAutoAssignments(array $autoAssignments): array
+    {
+        $response = $this->client->deferredRequest(
+            'DELETE',
+            self::FORM_AUTO_ASSIGNMENTS_ENDPOINT,
             [],
             ['data' => $autoAssignments]
         );
