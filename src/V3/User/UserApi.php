@@ -13,9 +13,9 @@ use Ekvio\Integration\Sdk\V3\EqueoClient;
 class UserApi implements User
 {
     private const USER_SYNC_ENDPOINT = '/v3/users/sync';
-    private const USER_LOGIN_RENAME_ENDPOINT = '/v2/users/rename';
+    private const USER_LOGIN_RENAME_ENDPOINT = '/v3/users/rename';
     private const USER_SEARCH_ENDPOINT = '/v3/users/search';
-    private const USER_DELETE_ENDPOINT = '/v2/users/delete';
+    private const USER_DELETE_ENDPOINT = '/v3/users/delete';
 
     private const DEFAULT_PARTIAL_SYNC = false;
     private const DEFAULT_CHIEF_SYNC = false;
