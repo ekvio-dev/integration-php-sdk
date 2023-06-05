@@ -85,7 +85,7 @@ class UserApiTest extends TestCase
         $request = $container[0]['request'];
         $this->assertEquals('POST', $request->getMethod());
         $this->assertEquals('test.dev', $request->getUri()->getHost());
-        $this->assertEquals('/v2/users/rename', $request->getUri()->getPath());
+        $this->assertEquals('/v3/users/rename', $request->getUri()->getPath());
 
         $body = (string) $request->getBody();
         $data = json_decode($body, true);
@@ -109,7 +109,7 @@ class UserApiTest extends TestCase
         $request = $container[0]['request'];
         $this->assertEquals('DELETE', $request->getMethod());
         $this->assertEquals('test.dev', $request->getUri()->getHost());
-        $this->assertEquals('/v2/users/delete', $request->getUri()->getPath());
+        $this->assertEquals('/v3/users/delete', $request->getUri()->getPath());
 
         $body = (string) $request->getBody();
         $data = json_decode($body, true);

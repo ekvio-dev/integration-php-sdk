@@ -38,15 +38,15 @@ class EqueoClientTest extends TestCase
     {
         $container = [];
         $client = $this->getMockClient($container);
-        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
-        $equeoClient->request('GET', '/v2/test/me', ['param' => 1]);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev/meta', '12345');
+        $equeoClient->request('GET', '/users/search', ['param' => 1]);
 
         foreach ($container as $transaction) {
             /** @var Request $request */
             $request = $transaction['request'];
             $this->assertEquals('GET', $request->getMethod());
             $this->assertEquals('test.dev', $request->getUri()->getHost());
-            $this->assertEquals('/v2/test/me', $request->getUri()->getPath());
+            $this->assertEquals('/meta/users/search', $request->getUri()->getPath());
             $this->assertEquals('param=1', $request->getUri()->getQuery());
         }
     }
@@ -59,8 +59,8 @@ class EqueoClientTest extends TestCase
             new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integra":100}}')
         ]);
 
-        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
-        $equeoClient->deferredRequest('POST', '/v2/users/sync', ['data' => []]);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev/meta', '12345');
+        $equeoClient->deferredRequest('POST', '/meta/v2/users/sync', ['data' => []]);
     }
 
     public function testRaiseExceptionWhenDeferredRequestReturnNotNaturalIntegrationId()
