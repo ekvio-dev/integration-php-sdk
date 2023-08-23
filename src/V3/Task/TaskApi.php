@@ -79,7 +79,7 @@ class TaskApi implements Task
     {
         $response = $this->client->deferredRequest(
             'POST',
-            self::LEARNING_PROGRAMS_ASSIGNMENT_PERSONAL,
+            self::TASK_ASSIGNMENT_PERSONAL,
             [],
             ['data' => $assignments]
         );
