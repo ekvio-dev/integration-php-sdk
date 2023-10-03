@@ -10,10 +10,6 @@ use Psr\Http\Client\ClientInterface;
 use Throwable;
 use Webmozart\Assert\Assert;
 
-/**
- * Class EqueoClient
- * @package Ekvio\Integration\Sdk\V3
- */
 class EqueoClient
 {
     private const STATUS_OK = 200;
@@ -22,52 +18,16 @@ class EqueoClient
     private const DEFAULT_RETRY_COUNT = 100;
     private const RETRY_COUNT_STOP = 0;
 
-    /**
-     * @var ClientInterface
-     */
-    private $client;
-    /**
-     * @var IntegrationResult
-     */
-    private $integrationResult;
-    /**
-     * @var string
-     */
-    private $host;
-    /**
-     * @var string
-     */
-    private $token;
-
-    /**
-     * @var int
-     */
-    private $requestIntervalTimeout = self::REQUEST_INTERVAL_TIMEOUT;
-
-    /**
-     * @var bool application debug mode
-     */
-    private $debug;
-
-    /**
-     * @var bool profile request body params in debug mode
-     */
-    private $debugRequestBody;
-
-    /**
-     * @var int retry counter
-     */
-    private $retryCount;
-
-    /**
-     * @var bool request interval flag
-     */
-    private $request_interval = true;
-
-    /**
-     * @var array Http client default options
-     */
-    private $httpClientOptions = [
+    private ClientInterface $client;
+    private IntegrationResult $integrationResult;
+    private string $host;
+    private string $token;
+    private int $requestIntervalTimeout = self::REQUEST_INTERVAL_TIMEOUT;
+    private bool $debug;
+    private bool $debugRequestBody;
+    private int $retryCount;
+    private bool $requestInterval = true;
+    private array $httpClientOptions = [
         'headers' => [
             'Accept' => 'application/json',
             'Content-Type' => 'application/json'
@@ -88,13 +48,10 @@ class EqueoClient
         $this->configureOptions($options);
     }
 
-    /**
-     * @param array $options
-     */
     private function configureOptions(array $options): void
     {
         if(array_key_exists('request_interval', $options) && is_bool($options['request_interval'])) {
-            $this->request_interval = $options['request_interval'];
+            $this->requestInterval = $options['request_interval'];
         }
 
         if(array_key_exists('request_interval_timeout', $options) && (int) $options['request_interval_timeout'] > 0) {
@@ -126,17 +83,21 @@ class EqueoClient
     /**
      * @throws ApiException
      */
-    public function request(string $method, string $endpoint, array $queryParams = [], array $body = []): array
+    public function request(string $method, string $endpoint, array $queryParams = [], array $body = [], array $options = []): array
     {
         $attributes = array_replace_recursive($this->httpClientOptions, [
             'headers' => [
                 'Authorization' => "Bearer {$this->token}",
             ],
+            $options
         ]);
 
         try {
-            if(in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+            if(!isset($body['multipart']) && in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
                 $attributes['body'] = json_encode($body);
+            } elseif (isset($body['multipart'])) {
+                unset($attributes['headers']['Content-Type']);
+                $attributes = $attributes + $body;
             }
 
             $url = sprintf('%s%s', $this->host, $endpoint);
@@ -153,7 +114,9 @@ class EqueoClient
                 $url = rtrim($url, '&');
             }
 
-            $this->profile($url, json_encode($body, JSON_UNESCAPED_UNICODE));
+            if(!isset($attributes['multipart'])) {
+                $this->profile($url, json_encode($body, JSON_UNESCAPED_UNICODE));
+            }
 
             $response = $this->client->request($method, $url, $attributes);
 
@@ -237,7 +200,6 @@ class EqueoClient
 
     /**
      * @throws ApiException
-     *
      */
     public function deferredRequest(string $method, string $endpoint, array $queryParams = [], array $body = []): array
     {
@@ -306,7 +268,7 @@ class EqueoClient
 
         if($retryCount > self::RETRY_COUNT_STOP) {
 
-            if($this->request_interval) {
+            if($this->requestInterval) {
                 $this->profile(sprintf('Integration ID: %s, status: %s, sleep timeout: %ss', $integrationId, $status, $this->requestIntervalTimeout));
                 sleep($this->requestIntervalTimeout);
             }
