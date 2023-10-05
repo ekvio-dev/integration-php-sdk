@@ -6,67 +6,42 @@ declare(strict_types=1);
 namespace Ekvio\Integration\Sdk\V3\Media;
 
 
-class MediaSearchCriteria
-{
-    private const METHOD = 'POST';
-    private array $fields = [];
-    private array $filters = [];
+use Ekvio\Integration\Sdk\Common\Criteria;
+use Ekvio\Integration\Sdk\Common\Method;
+use Webmozart\Assert\Assert;
 
+class MediaSearchCriteria extends Criteria
+{
+    private const STATUS = ['active', 'hide'];
     private function __construct(){}
 
     public static function build(array $criteria = []): self
     {
-        $self = new self();
-        if(!$criteria) {
-            return $self;
-        }
-
-        $self->fields = $criteria['fields'] ?? [];
-        $self->filters = $criteria['filters'] ?? [];
-
-        return $self;
+        return new self();
     }
 
     public function withFields(array $fields): self
     {
-        $self = clone $this;
-        $self->fields = $fields;
-
-        return $self;
+        return $this->cloneWithParam('fields', $fields);
     }
 
-    public function withFilters(array $filters): self
+    public function onlyCategoryFilter(array $categories): self
     {
-        $self = clone $this;
-        $self->filters = $filters;
+        Assert::allNatural($categories, 'Category IDs have not positive integer.');
+        Assert::maxCount($categories, 500, 'Category IDs exceed 500 elements.');
 
-        return $self;
+        return $this->cloneWithFilter('category', $categories);
+    }
+
+    public function onlyStatusFilter(string $status): self
+    {
+        Assert::inArray($status, self::STATUS, 'Unknown media status');
+
+        return $this->cloneWithFilter('status', $status);
     }
 
     public function method(): string
     {
-        return self::METHOD;
-    }
-
-    public function queryParams(): array
-    {
-        $params = [];
-
-        if($this->fields) {
-            $params['fields'] = implode(',', $this->fields);
-        }
-
-        return $params;
-    }
-
-    public function body(): array
-    {
-        if (!$this->filters) {
-            return [];
-        }
-
-        return [
-            'filters' => $this->filters
-        ];
+        return Method::POST;
     }
 }

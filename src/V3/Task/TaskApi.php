@@ -44,6 +44,9 @@ class TaskApi implements Task
         return $response['data'];
     }
 
+    /**
+     * @deprecated
+     */
     public function search(TaskSearchCriteria $criteria): array
     {
         $response = $this->client->pagedRequest(
@@ -70,11 +73,6 @@ class TaskApi implements Task
         return $response['data'];
     }
 
-    /**
-     * @param array $assignments
-     * @return array
-     * @throws ApiException
-     */
     public function createIndividualAssignments(array $assignments): array
     {
         $response = $this->client->deferredRequest(
@@ -85,5 +83,15 @@ class TaskApi implements Task
         );
 
         return $response['data'];
+    }
+
+    public function fields(TaskFieldSearchCriteria $criteria): array
+    {
+        return $this->client->pagedRequest(
+            $criteria->method(),
+            self::TASKS_FIELDS_SEARCH_ENDPOINT,
+            $criteria->queryParams(),
+            $criteria->body()
+        );
     }
 }

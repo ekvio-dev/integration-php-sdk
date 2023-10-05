@@ -35,13 +35,11 @@ class MediaApi implements Media
 
     public function search(MediaSearchCriteria $criteria): array
     {
-        $response = $this->client->request(
+        return $this->client->pagedRequest(
             $criteria->method(),
             self::MEDIA_SEARCH_ENDPOINT,
             $criteria->queryParams(),
             $criteria->body()
         );
-
-        return $response['data'];
     }
 }
