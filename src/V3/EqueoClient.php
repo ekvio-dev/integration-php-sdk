@@ -184,6 +184,24 @@ class EqueoClient
         return $data;
     }
 
+    public function cursorRequest(string $method, string $endpoint, array $queryParams = [], array $body = []): array
+    {
+        $response = $this->request($method, $endpoint, $queryParams, $body);
+        $this->raiseExceptionIfErrorResponse($response);
+
+        $data = $response['data'];
+        while (isset($response['meta']['cursor']['links']['next'])) {
+            $nextUrl = $response['meta']['cursor']['links']['next'];
+
+            $response = $this->request($method, $nextUrl, [], $body);
+            $this->raiseExceptionIfErrorResponse($response);
+
+            $data = array_merge($data, $response['data']);
+        }
+
+        return $data;
+    }
+
     /**
      * @throws ApiException
      */
