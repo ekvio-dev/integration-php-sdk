@@ -65,6 +65,11 @@ class TaskStatisticCriteria extends Criteria
         return $this->cloneWithParam('after_date', $dt);
     }
 
+    public function onlyCheckDate(DateTimeInterface $dt): self
+    {
+        return $this->cloneWithParam('from_check_date', $dt);
+    }
+
     public function method(): string
     {
         return Method::GET;
