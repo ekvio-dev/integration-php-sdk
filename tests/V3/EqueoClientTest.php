@@ -38,7 +38,7 @@ class EqueoClientTest extends TestCase
     {
         $container = [];
         $client = $this->getMockClient($container);
-        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev/meta', '12345');
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev/meta', '12345', $this->defaultOptions());
         $equeoClient->request('GET', '/users/search', ['param' => 1]);
 
         foreach ($container as $transaction) {
@@ -59,8 +59,8 @@ class EqueoClientTest extends TestCase
             new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integra":100}}')
         ]);
 
-        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev/meta', '12345');
-        $equeoClient->deferredRequest('POST', '/meta/v2/users/sync', ['data' => []]);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev/meta', '12345', $this->defaultOptions());
+        $equeoClient->deferredRequest('POST', '/meta/v2/users/sync', [], ['data' => []]);
     }
 
     public function testRaiseExceptionWhenDeferredRequestReturnNotNaturalIntegrationId()
@@ -70,8 +70,8 @@ class EqueoClientTest extends TestCase
         $client = $this->getMockClient($container, [
             new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integration":-100}}')
         ]);
-        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
-        $equeoClient->deferredRequest('POST', '/v2/users/sync', ['data' => []]);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', $this->defaultOptions());
+        $equeoClient->deferredRequest('POST', '/v2/users/sync', [], ['data' => []]);
     }
 
     public function testRaiseExceptionWhenDeferredRequestReturnErrorsInIntegrationResponse()
@@ -82,8 +82,8 @@ class EqueoClientTest extends TestCase
             new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integration":100}}'),
             new Response(200, [], '{"errors":[{"code": 100, "message": "Bad request"}]}')
         ]);
-        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
-        $equeoClient->deferredRequest('POST', '/v2/users/sync', ['data' => []]);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', $this->defaultOptions());
+        $equeoClient->deferredRequest('POST', '/v2/users/sync', [], ['data' => []]);
     }
 
     public function testRaiseExceptionWhenDeferredRequestReturnInvalidStructureResponse()
@@ -94,8 +94,8 @@ class EqueoClientTest extends TestCase
             new Response(200, ['X-Foo' => 'Bar'], '{"data":{"integration":100}}'),
             new Response(200, [], '{"data":{"invalid_status":"failed"}}')
         ]);
-        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345');
-        $equeoClient->deferredRequest('POST', '/v2/users/sync', ['data' => []]);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', $this->defaultOptions());
+        $equeoClient->deferredRequest('POST', '/v2/users/sync', [], ['data' => []]);
     }
 
     public function testRaiseExceptionWhenDeferredRequestReturnResponseWithoutFileLink()
@@ -110,7 +110,7 @@ class EqueoClientTest extends TestCase
         ]);
         $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', [
             'request_interval' => false
-        ]);
+        ] + $this->defaultOptions());
         $equeoClient->deferredRequest('POST', '/users/sync', ['data' => []]);
     }
 
@@ -131,8 +131,9 @@ class EqueoClientTest extends TestCase
         $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', [
             'request_interval' => false,
             'retry_count' => 3
-        ]);
-        $equeoClient->deferredRequest('POST', '/users/sync', ['data' => []]);
+        ] + $this->defaultOptions());
+
+        $equeoClient->deferredRequest('POST', '/users/sync', [], ['data' => []]);
     }
 
     public function testRaiseExceptionWhenDeferredRequestFailedAfterExceedRetryCountWithEmptyBody()
@@ -153,8 +154,9 @@ class EqueoClientTest extends TestCase
         $equeoClient = new EqueoClient($client, new HttpDummyResult('null'), 'http://test.dev', '12345', [
             'request_interval' => false,
             'retry_count' => 3
-        ]);
-        $equeoClient->deferredRequest('POST', '/users/sync', ['data' => []]);
+        ] + $this->defaultOptions());
+
+        $equeoClient->deferredRequest('POST', '/users/sync', [], ['data' => []]);
     }
 
     public function testSuccessDeferredRequest()
@@ -180,6 +182,101 @@ class EqueoClientTest extends TestCase
         $this->assertEquals(['data' => [['field' => 'Hello']]], $response);
     }
 
+    public function testSuccessRequestRetryMechanism()
+    {
+        $result = '{"data":[{"user":1}],"meta":{"pagination":{"total":2,"count":1,"per_page":1,"current_page":1,"total_pages":2,"links":{"next":"/v2/url?page=2"}}}}';
+        $responses = [
+            new Response(502, [], null),
+            new Response(502, [], null),
+            new Response(200, [], $result),
+        ];
+
+        $container = [];
+        $client = $this->getMockClient($container, $responses);
+
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', [
+            'request_retry_count' => 3,
+            'request_retry_timeout' => 0
+        ]);
+
+        $response = $equeoClient->request('GET', 'users/search');
+
+        $this->assertEquals(json_decode($result, true), $response);
+    }
+
+    public function testFailedInMainDeferredRequestWithRetryMechanism()
+    {
+        $this->expectException(ApiException::class);
+
+        $result = '{"data": [{"status":"created"},{"status":"updated"}}';
+        $responses = [
+            new Response(502, [], null),
+            new Response(502, [], null),
+            new Response(502, [], null),
+            new Response(200, [], $result),
+        ];
+
+        $container = [];
+        $client = $this->getMockClient($container, $responses);
+
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', [
+            'request_retry_count' => 3,
+            'request_retry_timeout' => 0
+        ]);
+        $equeoClient->deferredRequest('POST', '/users/sync', [], ['data' => []]);
+    }
+
+    public function testFailedInIntegrationRequestWithRetryMechanism()
+    {
+        $this->expectException(ApiException::class);
+
+        $responses = [
+            new Response(502, [], null),
+            new Response(200, [], '{"data":{"integration":100}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(502, [], null),
+            new Response(502, [], null),
+            new Response(502, [], null),
+            new Response(502, [], null),
+        ];
+
+        $container = [];
+        $client = $this->getMockClient($container, $responses);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', [
+            'request_interval' => false,
+            'request_retry_count' => 3,
+            'request_retry_timeout' => 0
+        ]);
+
+        $equeoClient->deferredRequest('POST', '/users/sync', [], ['data' => []]);
+    }
+
+    public function testSuccessDeferredRequestWithRetryMechanism()
+    {
+        $result = '{"data": [{"status":"created"},{"status":"updated"}]}';
+        $responses = [
+            new Response(502, [], null),
+            new Response(200, [], '{"data":{"integration":100}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(200, [], '{"data":{"status":"progress"}}'),
+            new Response(502, [], null),
+            new Response(200, [], '{"data":{"status":"completed", "file": "http://result.link"}}'),
+        ];
+
+        $container = [];
+        $client = $this->getMockClient($container, $responses);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult($result), 'http://test.dev', '12345', [
+            'request_interval' => false,
+            'request_retry_count' => 1,
+            'request_retry_timeout' => 0
+        ]);
+
+        $response = $equeoClient->deferredRequest('POST', '/users/sync', [], ['data' => []]);
+        $this->assertArrayHasKey('data', $response);
+        $this->assertCount(2, $response['data']);
+    }
+
     public function testSuccessPagedRequest()
     {
         $responses = [
@@ -197,6 +294,23 @@ class EqueoClientTest extends TestCase
         $this->assertEquals([['user' => 1], ['user' => 2]], $response);
     }
 
+    public function testSuccessPagedRequestWithRetryMechanism()
+    {
+        $responses = [
+            new Response(502, [], null),
+            new Response(200, [], '{"data":[{"user": 1}], "meta": {"pagination":{"total": 2,"count": 1,"per_page": 1,"current_page": 1,"total_pages": 2,"links": {"next": "/v2/url?page=2"}}}}'),
+            new Response(502, [], null),
+            new Response(200, [], '{"data":[{"user": 2}], "meta": {"pagination":{"total": 2,"count": 1,"per_page": 1,"current_page": 2,"total_pages": 2,"links": {"previous":"/v2/url?page=1"}}}}'),
+        ];
+
+        $container = [];
+        $client = $this->getMockClient($container, $responses);
+        $equeoClient = new EqueoClient($client, new HttpDummyResult(), 'http://test.dev', '12345', $this->defaultOptions());
+        $response = $equeoClient->pagedRequest('GET', 'users/search');
+
+        $this->assertCount(2, $response);
+    }
+
     private function getMockClient(array &$container, array $responses = []): Client
     {
         if(!$responses) {
@@ -209,5 +323,13 @@ class EqueoClientTest extends TestCase
         $handlerStack->push($history);
 
         return new Client(['handler' => $handlerStack]);
+    }
+
+    private function defaultOptions(): array
+    {
+        return [
+            'request_retry_count' => 3,
+            'request_retry_timeout' => 0
+        ];
     }
 }
