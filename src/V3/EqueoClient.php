@@ -7,6 +7,7 @@ use DateTimeImmutable;
 use Ekvio\Integration\Sdk\ApiException;
 use Ekvio\Integration\Sdk\Common\Integration\IntegrationResult;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use Webmozart\Assert\Assert;
 
@@ -17,6 +18,8 @@ use Webmozart\Assert\Assert;
 class EqueoClient
 {
     private const STATUS_OK = 200;
+
+    private const REQUEST_RETRY_STATUSES = [502];
     private const INTEGRATION_ENDPOINT = '/v3/integration/';
     private const REQUEST_INTERVAL_TIMEOUT = 10;
     private const DEFAULT_RETRY_COUNT = 100;
@@ -63,6 +66,15 @@ class EqueoClient
      * @var bool request interval flag
      */
     private $request_interval = true;
+
+    /**
+     * @var int
+     */
+    private $requestRetryCount = 5;
+    /**
+     * @var int
+     */
+    private $requestRetryTimeout = 15;
 
     /**
      * @var array Http client default options
@@ -121,6 +133,18 @@ class EqueoClient
         } else {
             $this->retryCount = self::DEFAULT_RETRY_COUNT;
         }
+
+        if (array_key_exists('request_retry_count', $options) && is_int($options['request_retry_count'])) {
+            Assert::natural($options['request_retry_count'],'Request retry count must be an positive integer');
+
+            $this->requestRetryCount = $options['request_retry_count'];
+        }
+
+        if (array_key_exists('request_retry_timeout', $options) && is_int($options['request_retry_timeout'])) {
+            Assert::natural($options['request_retry_timeout'], 'Request retry timeout must be an positive integer');
+
+            $this->requestRetryTimeout = $options['request_retry_timeout'];
+        }
     }
 
     /**
@@ -155,7 +179,7 @@ class EqueoClient
 
             $this->profile($url, json_encode($body, JSON_UNESCAPED_UNICODE));
 
-            $response = $this->client->request($method, $url, $attributes);
+            $response = $this->makeRetryRequest($method, $url, $attributes);
 
             if($response->getStatusCode() !== self::STATUS_OK){
                 ApiException::failedRequest(sprintf('For request %s get response with code %s and reason %s', $url, $response->getStatusCode(), $response->getReasonPhrase()));
@@ -315,6 +339,24 @@ class EqueoClient
         }
 
         ApiException::failedRequest(sprintf('integration %s status %s was not change or data from link %s is empty', $integrationId, $status, $file));
+    }
+
+    private function makeRetryRequest(string $method, string $url, array $attributes = []): ResponseInterface
+    {
+        $this->profile(sprintf('Start request %s %s', $method, $url));
+        $response = $this->client->request($method, $url, $attributes);
+
+        $cnt = 1;
+        while (in_array($response->getStatusCode(), self::REQUEST_RETRY_STATUSES, true) && $cnt <= $this->requestRetryCount) {
+            sleep($this->requestRetryTimeout);
+
+            $this->profile(sprintf('Retry request %s %s. Attempt %s after %ss sleep', $method, $url, $cnt, $this->requestRetryTimeout));
+            $response = $this->client->request($method, $url, $attributes);
+
+            $cnt++;
+        }
+
+        return $response;
     }
 
     /**
