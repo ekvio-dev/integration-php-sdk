@@ -5,18 +5,22 @@ namespace Ekvio\Integration\Sdk\V3\Material;
 
 use Ekvio\Integration\Sdk\ApiException;
 use Ekvio\Integration\Sdk\V3\EqueoClient;
+use PhpParser\Comment\Doc;
 
 /**
  * Class Material
  * @package Ekvio\Integration\Sdk\V3\Material
  */
-class Material implements MaterialStatistic
+class Material implements MaterialInterface
 {
     private const MATERIALS_STATISTIC_ENDPOINT = '/v3/materials/statistic';
     /**
      * @var EqueoClient
      */
     private $client;
+    private Link $link;
+    private Document $document;
+    private Pdf $pdf;
 
     /**
      * Material constructor.
@@ -25,6 +29,9 @@ class Material implements MaterialStatistic
     public function __construct(EqueoClient $client)
     {
         $this->client = $client;
+        $this->link = new Link($client);
+        $this->document = new Document($client);
+        $this->pdf = new Pdf($client);
     }
 
     /**
@@ -58,5 +65,29 @@ class Material implements MaterialStatistic
         $content = $this->client->integration($integration);
 
         return $content['data'];
+    }
+
+    /**
+     * @return Document
+     */
+    public function getDocument(): Document
+    {
+        return $this->document;
+    }
+
+    /**
+     * @return Link
+     */
+    public function getLink(): Link
+    {
+        return $this->link;
+    }
+
+    /**
+     * @return Pdf
+     */
+    public function getPdf(): Pdf
+    {
+        return $this->pdf;
     }
 }
