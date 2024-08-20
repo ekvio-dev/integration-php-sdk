@@ -56,6 +56,14 @@ class Task implements TaskStatistic
             $fields['answer_status'] = $criteria['answer_status'];
         }
 
+        if(array_key_exists('after_date', $criteria)) {
+            $fields['after_date'] = $criteria['after_date'];
+        }
+
+        if(array_key_exists('to_date', $criteria)) {
+            $fields['to_date'] = $criteria['to_date'];
+        }
+
         $response = $this->client->request('GET', self::TASKS_STATISTIC_ENDPOINT, $fields);
 
         if(isset($response['errors'])) {

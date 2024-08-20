@@ -50,6 +50,14 @@ class UserSearchCriteria
             $filters['group'] = $criteria['filters']['group'];
         }
 
+        if (isset($criteria['filters']['email']) && is_array($criteria['filters']['email'])) {
+            $filters['email'] = $criteria['filters']['email'];
+        }
+
+        if (isset($criteria['filters']['phone']) && is_array($criteria['filters']['phone'])) {
+            $filters['phone'] = $criteria['filters']['phone'];
+        }
+
         return $filters;
     }
 

@@ -13,13 +13,14 @@ use Ekvio\Integration\Sdk\V3\EqueoClient;
 class UserApi implements User
 {
     private const USER_SYNC_ENDPOINT = '/v3/users/sync';
-    private const USER_LOGIN_RENAME_ENDPOINT = '/v2/users/rename';
+    private const USER_LOGIN_RENAME_ENDPOINT = '/v3/users/rename';
     private const USER_SEARCH_ENDPOINT = '/v3/users/search';
-    private const USER_DELETE_ENDPOINT = '/v2/users/delete';
+    private const USER_DELETE_ENDPOINT = '/v3/users/delete';
 
     private const DEFAULT_PARTIAL_SYNC = false;
     private const DEFAULT_CHIEF_SYNC = false;
     private const DEFAULT_NOTIFY_USERS = false;
+    private const DEFAULT_WITH_WHITELIST = false;
     /**
      * @var EqueoClient
      */
@@ -46,7 +47,8 @@ class UserApi implements User
             'data' => $users,
             'partial_sync' => $config['partial_sync'] ?? self::DEFAULT_PARTIAL_SYNC,
             'chief_sync' => $config['chief_sync'] ?? self::DEFAULT_CHIEF_SYNC,
-            'notify_users' => $config['notify_users'] ?? self::DEFAULT_NOTIFY_USERS
+            'notify_users' => $config['notify_users'] ?? self::DEFAULT_NOTIFY_USERS,
+            'with_whitelist' => $config['with_whitelist'] ?? self::DEFAULT_WITH_WHITELIST
         ]);
 
         return $response['data'];
