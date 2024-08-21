@@ -19,6 +19,7 @@ class EqueoClient
     private const INTEGRATION_REQUEST_INTERVAL_TIMEOUT = 10;
     private const INTEGRATION_REQUEST_RETRY_COUNT = 100;
     private const INTEGRATION_RETRY_COUNT_STOP = 0;
+    private const DEFAULT_CHUNK_SIZE = 500;
 
     private ClientInterface $client;
     private IntegrationResult $integrationResult;
@@ -254,6 +255,25 @@ class EqueoClient
         }
 
         return $this->integration($integration, $this->retryCount);
+    }
+
+    public function defaultDeferredRequest(string $method, string $endpoint, array $items, array $options = []): array
+    {
+        $chunkSize = $options['chunk_size'] ?? self::DEFAULT_CHUNK_SIZE;
+        Assert::integer($chunkSize, 'Option chunkSize must be an integer');
+        Assert::greaterThan($chunkSize, 0, 'Option chunkSize must be greater than zero');
+        Assert::lessThan($chunkSize, self::DEFAULT_CHUNK_SIZE, 'Option chunkSize must be less than 500');
+
+        $data = [];
+        foreach (array_chunk($items, $chunkSize, true) as $chunk) {
+            $response = $this->deferredRequest($method, $endpoint, [], [
+                'data' => $chunk
+            ]);
+
+            $data = array_merge($data, $response['data']);
+        }
+
+        return $data;
     }
 
     /**
