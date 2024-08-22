@@ -262,7 +262,7 @@ class EqueoClient
         $chunkSize = $options['chunk_size'] ?? self::DEFAULT_CHUNK_SIZE;
         Assert::integer($chunkSize, 'Option chunkSize must be an integer');
         Assert::greaterThan($chunkSize, 0, 'Option chunkSize must be greater than zero');
-        Assert::lessThan($chunkSize, self::DEFAULT_CHUNK_SIZE, 'Option chunkSize must be less than 500');
+        Assert::lessThanEq($chunkSize, self::DEFAULT_CHUNK_SIZE, 'Option chunkSize must be less than 500');
 
         $data = [];
         foreach (array_chunk($items, $chunkSize, true) as $chunk) {
