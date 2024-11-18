@@ -20,4 +20,16 @@ interface Group
      * @return array
      */
     public function update(GroupUpdateCriteria $criteria): array;
+
+    /**
+     * @param GroupCreateCriteria $criteria
+     * @return array
+     */
+    public function create(GroupCreateCriteria $criteria): array;
+
+    /**
+     * @param GroupDeleteCriteria $criteria
+     * @return array
+     */
+    public function delete(GroupDeleteCriteria $criteria): array;
 }

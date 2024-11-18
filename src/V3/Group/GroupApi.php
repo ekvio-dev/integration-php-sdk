@@ -13,15 +13,16 @@ use Ekvio\Integration\Sdk\V3\EqueoClient;
 class GroupApi implements Group
 {
     private const GROUP_SEARCH_ENDPOINT = '/v3/groups/search';
-    private const GROUP_UPDATE_ENDPOINT = '/v2/groups/delete';
+    private const GROUP_UPDATE_ENDPOINT = '/v3/groups/update';
+    private const GROUP_CREATE_ENDPOINT = '/v3/groups/create';
+    private const GROUP_DELETE_ENDPOINT = '/v3/groups/delete';
 
     /**
      * @var EqueoClient
      */
-    private $client;
+    private EqueoClient $client;
 
     /**
-     * Material constructor.
      * @param EqueoClient $client
      */
     public function __construct(EqueoClient $client)
@@ -52,6 +53,34 @@ class GroupApi implements Group
     public function update(GroupUpdateCriteria $criteria): array
     {
         $response = $this->client->deferredRequest('POST', self::GROUP_UPDATE_ENDPOINT, [], [
+            'data' => $criteria->data()
+        ]);
+
+        return $response['data'];
+    }
+
+    /**
+     * @param GroupCreateCriteria $criteria
+     * @return array
+     * @throws ApiException
+     */
+    public function create(GroupCreateCriteria  $criteria): array
+    {
+        $response = $this->client->deferredRequest('POST', self::GROUP_CREATE_ENDPOINT, [], [
+            'data' => $criteria->data()
+        ]);
+
+        return $response['data'];
+    }
+
+    /**
+     * @param GroupDeleteCriteria $criteria
+     * @return array
+     * @throws ApiException
+     */
+    public function delete(GroupDeleteCriteria  $criteria): array
+    {
+        $response = $this->client->deferredRequest('DELETE', self::GROUP_DELETE_ENDPOINT, [], [
             'data' => $criteria->data()
         ]);
 
