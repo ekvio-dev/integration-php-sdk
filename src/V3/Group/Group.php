@@ -16,20 +16,20 @@ interface Group
     public function search(GroupSearchCriteria $criteria): array;
 
     /**
-     * @param GroupUpdateCriteria $criteria
+     * @param array $data
      * @return array
      */
-    public function update(GroupUpdateCriteria $criteria): array;
+    public function update(array $data): array;
 
     /**
-     * @param GroupCreateCriteria $criteria
+     * @param array $data
      * @return array
      */
-    public function create(GroupCreateCriteria $criteria): array;
+    public function create(array $data): array;
 
     /**
-     * @param GroupDeleteCriteria $criteria
+     * @param array $data
      * @return array
      */
-    public function delete(GroupDeleteCriteria $criteria): array;
+    public function delete(array $data): array;
 }

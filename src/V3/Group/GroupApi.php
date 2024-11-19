@@ -46,42 +46,42 @@ class GroupApi implements Group
     }
 
     /**
-     * @param GroupUpdateCriteria $criteria
+     * @param array $data
      * @return array
      * @throws ApiException
      */
-    public function update(GroupUpdateCriteria $criteria): array
+    public function update(array $data): array
     {
         $response = $this->client->deferredRequest('POST', self::GROUP_UPDATE_ENDPOINT, [], [
-            'data' => $criteria->data()
+            'data' => $data
         ]);
 
         return $response['data'];
     }
 
     /**
-     * @param GroupCreateCriteria $criteria
+     * @param array $data
      * @return array
      * @throws ApiException
      */
-    public function create(GroupCreateCriteria  $criteria): array
+    public function create(array $data): array
     {
         $response = $this->client->deferredRequest('POST', self::GROUP_CREATE_ENDPOINT, [], [
-            'data' => $criteria->data()
+            'data' => $data
         ]);
 
         return $response['data'];
     }
 
     /**
-     * @param GroupDeleteCriteria $criteria
+     * @param array $data
      * @return array
      * @throws ApiException
      */
-    public function delete(GroupDeleteCriteria  $criteria): array
+    public function delete(array $data): array
     {
         $response = $this->client->deferredRequest('DELETE', self::GROUP_DELETE_ENDPOINT, [], [
-            'data' => $criteria->data()
+            'data' => $data
         ]);
 
         return $response['data'];
