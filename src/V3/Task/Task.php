@@ -10,4 +10,5 @@ interface Task
     public function statistic(TaskStatisticCriteria $criteria): array;
     public function search(TaskSearchCriteria $criteria): array;
     public function fields(TaskFieldSearchCriteria $criteria): array;
+    public function updateStatuses(array $statuses): array;
 }
