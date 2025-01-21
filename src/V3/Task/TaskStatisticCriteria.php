@@ -14,6 +14,7 @@ class TaskStatisticCriteria extends Criteria
 {
     private const TASK_STATUS = ['active', 'hide'];
     private const ANSWER_STATUS = ['completed', 'checking', 'failed'];
+    private const REVIEW_ROLE = ['administrator', 'manager'];
 
     private function __construct(){}
 
@@ -68,6 +69,20 @@ class TaskStatisticCriteria extends Criteria
     public function onlyCheckDate(DateTimeInterface $dt): self
     {
         return $this->cloneWithParam('from_check_date', $dt);
+    }
+
+    public function onlyRole(string $role): self
+    {
+        Assert::notEmpty($role, 'Role required.');
+        Assert::inArray($role, self::REVIEW_ROLE, 'Role invalid. Use administrator or manager.');
+        return $this->cloneWithFilter('role', [$role]);
+    }
+
+    public function onlyReviewers(array $reviewers): self
+    {
+        Assert::notEmpty($reviewers, 'Reviewers required.');
+        Assert::maxCount($reviewers, 500, 'Reviewers IDs exceed 500 elements.');
+        return $this->cloneWithFilter('reviewer', $reviewers);
     }
 
     public function method(): string
