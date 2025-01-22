@@ -23,7 +23,12 @@ class InformationApi implements Information
 
     public function search(SearchInformationCriteria $criteria): array
     {
-        return $this->client->pagedRequest('GET', self::INFORMATION_ENDPOINT, $criteria->params());
+        return $this->client->pagedRequest(
+          'GET',
+          self::INFORMATION_ENDPOINT,
+          $criteria->queryParams(),
+          $criteria->body()
+        );
     }
 
     public function create(array $information): array
