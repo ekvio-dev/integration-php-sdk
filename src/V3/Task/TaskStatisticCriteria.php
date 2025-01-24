@@ -31,6 +31,14 @@ class TaskStatisticCriteria extends Criteria
         return $this->cloneWithParam('tasks', $tasks);
     }
 
+    public function onlyCategories(array $categories): self
+    {
+        Assert::allNatural($categories, 'Category IDs have not positive integer.');
+        Assert::maxCount($categories, 500, 'Category IDs exceed 500 elements.');
+
+        return $this->cloneWithParam('category', $categories);
+    }
+
     public function onlyTaskStatus(string $status): self
     {
         Assert::notEmpty($status, 'Task status required.');
