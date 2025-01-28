@@ -16,6 +16,7 @@ class TaskApi implements Task
     private const TASK_GET_ENDPOINT = '/v3/tasks/search';
     private const TASK_ASSIGNMENT_PERSONAL = '/v3/tasks/assignments/personal';
     private const TASK_CREATE_ENDPOINT = '/v3/tasks';
+    private const TASK_UPDATE_ENDPOINT = '/v3/tasks';
     private const TASK_FIELD_CREATE_ENDPOINT = '/v3/tasks/fields';
 
     private EqueoClient $client;
@@ -103,6 +104,20 @@ class TaskApi implements Task
         $data = [];
         foreach (array_chunk($tasks, self::CHUNK, true) as $chunk) {
             $response = $this->client->deferredRequest('POST', self::TASK_CREATE_ENDPOINT, [], [
+                'data' => $chunk
+            ]);
+
+            $data = array_merge($data, $response['data']);
+        }
+
+        return $data;
+    }
+
+    public function updateTasks(array $tasks): array
+    {
+        $data = [];
+        foreach (array_chunk($tasks, self::CHUNK, true) as $chunk) {
+            $response = $this->client->deferredRequest('PUT', self::TASK_UPDATE_ENDPOINT, [], [
                 'data' => $chunk
             ]);
 
