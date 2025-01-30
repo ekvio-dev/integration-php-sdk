@@ -95,6 +95,6 @@ class TaskStatisticCriteria extends Criteria
 
     public function method(): string
     {
-        return Method::GET;
+        return Method::POST;
     }
 }

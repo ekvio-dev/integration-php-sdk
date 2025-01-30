@@ -13,7 +13,7 @@ class TaskStatisticCriteriaTest extends TestCase
     {
         $c = TaskStatisticCriteria::build();
 
-        $this->assertEquals('GET', $c->method());
+        $this->assertEquals('POST', $c->method());
         $this->assertEquals([], $c->queryParams());
         $this->assertEquals([], $c->body());
     }
