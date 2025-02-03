@@ -36,7 +36,7 @@ class TaskStatisticCriteria extends Criteria
         Assert::allNatural($categories, 'Category IDs have not positive integer.');
         Assert::maxCount($categories, 500, 'Category IDs exceed 500 elements.');
 
-        return $this->cloneWithParam('category', $categories);
+        return $this->cloneWithParam('categories', $categories);
     }
 
     public function onlyTaskStatus(string $status): self
