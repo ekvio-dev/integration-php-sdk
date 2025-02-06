@@ -32,7 +32,7 @@ class TaskApi implements Task
             $criteria->method(),
             self::TASK_GET_ENDPOINT,
             $criteria->queryParams(),
-            []
+            $criteria->body()
         );
     }
 
