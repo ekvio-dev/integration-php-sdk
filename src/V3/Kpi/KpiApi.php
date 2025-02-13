@@ -83,13 +83,11 @@ class KpiApi implements Kpi
      */
     public function searchKpiTransactions(KpiTransactionsSearchCriteria $criteria): array
     {
-        $response = $this->client->deferredRequest(
+        return $this->client->pagedRequest(
             $criteria->method(),
             self::KPI_TRANSACTIONS_SEARCH_ENDPOINT,
             $criteria->queryParams(),
             $criteria->body()
         );
-
-        return $response['data'];
     }
 }
