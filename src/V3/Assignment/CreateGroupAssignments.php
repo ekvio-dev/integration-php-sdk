@@ -14,7 +14,7 @@ class CreateGroupAssignments
     private array $assignments;
     public function __construct(string $entity, array $assignments)
     {
-        Assert::inArray($entity, ['task', 'media', 'shop', 'info'], sprintf('Unsupported entity type %s', $entity));
+        Assert::inArray($entity, ['task', 'media', 'shop', 'info', 'learning_program', 'track', 'event', 'message'], sprintf('Unsupported entity type %s', $entity));
         $this->entity = $entity;
         $this->assignments = $assignments;
     }
