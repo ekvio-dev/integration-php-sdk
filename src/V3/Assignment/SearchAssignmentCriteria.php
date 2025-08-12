@@ -12,7 +12,7 @@ use Webmozart\Assert\Assert;
 
 class SearchAssignmentCriteria extends Criteria
 {
-    private const SEARCH_ENTITY_TYPE = ['task', 'media', 'shop', 'info', 'learning_program', 'track', 'event', 'message'];
+    private const SEARCH_ENTITY_TYPE = ['task', 'media', 'shop', 'info', 'learning_program', 'track', 'event', 'message', 'badge', 'kpi'];
     private const TYPE = ['personal', 'group'];
     private string $entity;
     private function __construct(string $entity)
