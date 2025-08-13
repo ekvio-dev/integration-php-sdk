@@ -7,8 +7,10 @@ use Ekvio\Integration\Sdk\V3\EqueoClient;
 
 class AchievementApi implements Achievement
 {
+    private const CHUNK = 500;
     private const BADGES_STATISTIC_ENDPOINT = '/v2/badges/statistic';
     private const BADGES_SEARCH_ENDPOINT = '/v2/badges/search';
+    private const BADGES_AWARDS = '/v3/badges/awards';
 
     private EqueoClient $client;
 
@@ -39,5 +41,19 @@ class AchievementApi implements Achievement
         );
 
         return $response;
+    }
+
+    public function badgeAwards(array $awards): array
+    {
+        $data = [];
+        foreach (array_chunk($awards, self::CHUNK, true) as $chunk) {
+            $response = $this->client->deferredRequest('POST', self::BADGES_AWARDS, [], [
+                'data' => $chunk
+            ]);
+
+            $data = array_merge($data, $response['data']);
+        }
+
+        return $data;
     }
 }
