@@ -22,14 +22,13 @@ class AssignmentApi implements Assignment
     public function search(SearchAssignmentCriteria $criteria): array
     {
         $endpoint = str_replace(':entity', $criteria->entity(), self::SEARCH_ASSIGNMENT_ENDPOINT);
-        $response = $this->client->cursorRequest(
+
+        return $this->client->cursorRequest(
             $criteria->method(),
             $endpoint,
             $criteria->queryParams(),
             $criteria->body()
         );
-
-        return $response['data'];
     }
 
     public function createPersonal(CreatePersonalAssignments $collection): array
