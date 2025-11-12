@@ -13,4 +13,5 @@ interface Material
     public function createPdf(array $items): array;
     public function updatePdf(array $items): array;
     public function statistic(MaterialStatisticCriteria $criteria): array;
+    public function search(MaterialSearchCriteria $criteria): array;
 }

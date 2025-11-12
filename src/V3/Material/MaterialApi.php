@@ -15,6 +15,7 @@ class MaterialApi implements Material
     private const PDF_CREATE_ENDPOINT = '/v3/materials/pdf';
     private const PDF_UPDATE_ENDPOINT = '/v3/materials/pdf';
     private const MATERIALS_STATISTIC_ENDPOINT = '/v3/materials/statistic';
+    private const MATERIAL_SEARCH = '/v3/materials';
     private EqueoClient $client;
 
     public function __construct(EqueoClient $client)
@@ -61,5 +62,15 @@ class MaterialApi implements Material
         );
 
         return $response['data'];
+    }
+
+    public function search(MaterialSearchCriteria $criteria): array
+    {
+        return $this->client->pagedRequest(
+            $criteria->method(),
+            self::MATERIAL_SEARCH,
+            $criteria->queryParams(),
+            $criteria->body()
+        );
     }
 }
