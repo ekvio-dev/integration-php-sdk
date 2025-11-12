@@ -37,7 +37,7 @@ class MaterialSearchCriteria extends Criteria
             Assert::inArray($type, self::MATERIAL_TYPE, 'Material type invalid. Use pdf, scorm, html, link, test, video, longread, document');
         }
 
-        return $this->cloneWithParam('types', $types);
+        return $this->cloneWithParam('type', $types);
     }
 
     public function onlyFields(array $fields): self
