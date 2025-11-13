@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Ekvio\Integration\Sdk\V3\Task;
 
-use Ekvio\Integration\Sdk\ApiException;
 use Ekvio\Integration\Sdk\V3\EqueoClient;
 
 class TaskApi implements Task
 {
     private const CHUNK = 500;
+    private const TASK_FIELD_CHUNK = 100;
     private const TASKS_STATISTIC_ENDPOINT = '/v3/tasks/statistic';
     private const TASKS_FIELDS_SEARCH_ENDPOINT = '/v3/tasks/fields/search';
     private const TASK_STATUSES_UPDATE_ENDPOINT = '/v3/tasks/answers/statuses';
@@ -130,7 +130,7 @@ class TaskApi implements Task
     public function createTaskFields(array $taskFields): array
     {
         $data = [];
-        foreach (array_chunk($taskFields, self::CHUNK, true) as $chunk) {
+        foreach (array_chunk($taskFields, self::TASK_FIELD_CHUNK, true) as $chunk) {
             $response = $this->client->deferredRequest('POST', self::TASK_FIELD_CREATE_ENDPOINT, [], [
                 'data' => $chunk
             ]);
