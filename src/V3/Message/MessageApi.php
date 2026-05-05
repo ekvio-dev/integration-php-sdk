@@ -11,6 +11,7 @@ class MessageApi implements Message
     private const MESSAGES_ASSIGNMENT_PERSONAL = '/v3/messages/assignments/personal';
     private const MESSAGES_COPY_ENDPOINT = '/v3/messages/copy';
     private const MESSAGE_ENDPOINT = '/v3/messages';
+    private const MESSAGE_SEARCH_ENDPOINT = '/v3/messages/search';
 
     private EqueoClient $client;
 
@@ -64,5 +65,15 @@ class MessageApi implements Message
         );
 
         return $response['data'];
+    }
+
+    public function search(MessageSearchCriteria $criteria): array
+    {
+        return $this->client->pagedRequest(
+            $criteria->method(),
+            self::MESSAGE_SEARCH_ENDPOINT,
+            $criteria->queryParams(),
+            $criteria->body()
+        );
     }
 }
