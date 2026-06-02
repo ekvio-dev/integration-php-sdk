@@ -29,7 +29,7 @@ class TaskSearchCriteria extends Criteria
         Assert::notEmpty($status, 'Task status required.');
         Assert::inArray($status, self::TASK_STATUS, 'Task status invalid. Use active or hide.');
 
-        return $this->cloneWithParam('status', $status);
+        return $this->cloneWithParam('task_status', $status);
     }
 
     public function onlyTasksFilter(array $tasks): self
